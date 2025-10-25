@@ -1,4 +1,12 @@
 {
+  "name": "racer",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Icelandic typing racer game",
+  "main": "test.js",
+  "scripts": {
+    "start": "node test.js"
+  },
   "dependencies": {
     "keypress": "^0.2.1"
   }
