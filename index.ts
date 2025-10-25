@@ -30,6 +30,45 @@ const colors = {
 	brightCyan: '\x1b[96m'
 } as const;
 
+// Frame characters for Tetris-style border
+const frame = {
+	topLeft: '╔',
+	topRight: '╗',
+	bottomLeft: '╚',
+	bottomRight: '╝',
+	horizontal: '═',
+	vertical: '║'
+} as const;
+
+// Helper function to get terminal dimensions and calculate centering
+const getCenteringInfo = (contentWidth: number, contentHeight: number) => {
+	const termWidth = process.stdout.columns || 80;
+	const termHeight = process.stdout.rows || 24;
+
+	const leftPadding = Math.max(0, Math.floor((termWidth - contentWidth) / 2));
+	const topPadding = Math.max(0, Math.floor((termHeight - contentHeight) / 2));
+
+	return { leftPadding, topPadding, termWidth, termHeight };
+};
+
+// Helper function to create a framed line
+const createFramedLine = (content: string, width: number, leftPadding: number): string => {
+	const padding = ' '.repeat(leftPadding);
+	// Strip ANSI codes to measure actual content length
+	const strippedContent = content.replace(/\x1b\[[0-9;]*m/g, '');
+	const contentPadding = ' '.repeat(Math.max(0, width - strippedContent.length - 2));
+	return `${padding}${colors.brightBlue}${frame.vertical}${colors.reset} ${content}${contentPadding}${colors.brightBlue}${frame.vertical}${colors.reset}`;
+};
+
+// Helper function to create horizontal border
+const createHorizontalBorder = (width: number, leftPadding: number, isTop: boolean): string => {
+	const padding = ' '.repeat(leftPadding);
+	const leftChar = isTop ? frame.topLeft : frame.bottomLeft;
+	const rightChar = isTop ? frame.topRight : frame.bottomRight;
+	const line = frame.horizontal.repeat(width);
+	return `${padding}${colors.brightBlue}${leftChar}${line}${rightChar}${colors.reset}`;
+};
+
 interface BoardItem {
 	generated: string;
 	success: boolean;
@@ -146,26 +185,31 @@ const startGameLoop = () => {
 	const tickSound = (tickCount % 2 === 0) ? 'tick2' : 'tick1';
 	playGameSound(tickSound);
 
-	// Render
+	// Render with frame and centering
 	console.clear();
-	console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
+
+	// Build content lines first
+	const lines: string[] = [];
+	lines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+	lines.push('');
+
 	for (let i = 0; i < board.length; i++) {
 		// Always show the catch character at position 16
 		if (i === 16) {
 			if (board[i] !== undefined) {
 				const marker = board[i]!.success ? `${colors.brightGreen}✓` : `${colors.brightYellow}#`;
 				const letterColor = board[i]!.success ? colors.brightGreen : colors.brightMagenta;
-				console.log(`${marker}${letterColor}${board[i]!.generated}${colors.reset}`);
+				lines.push(`${marker}${letterColor}${board[i]!.generated}${colors.reset}`);
 			} else {
 				// Show just the catch character even when no letter is there
-				console.log(`${colors.brightYellow}#${colors.reset}`);
+				lines.push(`${colors.brightYellow}#${colors.reset}`);
 			}
 		} else if (i < 16) {
 			// Only render positions before the catch line (0-15)
 			if (board[i] !== undefined) {
-				console.log(`${colors.cyan}${board[i]!.generated}${colors.reset}`);
+				lines.push(`${colors.cyan}${board[i]!.generated}${colors.reset}`);
 			} else {
-				console.log('');
+				lines.push('');
 			}
 		}
 		// Skip positions after the catch line (17-18) to eliminate spacing
@@ -174,15 +218,38 @@ const startGameLoop = () => {
 	// Show progress with typed part and remaining part
 	const fullTarget = levels[currentLevelIndex].target;
 	const remaining = fullTarget.substring(typedProgress.length);
-	console.log(`\n${colors.bright}${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
+	lines.push('');
+	lines.push(`${colors.bright}${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
 
 	// Show current performance stats
-	console.log(`${colors.brightYellow}Villur: ${colors.brightRed}${errorCount}${colors.reset}  ${colors.brightYellow}Missir: ${colors.brightRed}${missedLetters}${colors.reset}`);
+	lines.push(`${colors.brightYellow}Villur: ${colors.brightRed}${errorCount}${colors.reset}  ${colors.brightYellow}Missir: ${colors.brightRed}${missedLetters}${colors.reset}`);
 
 	// Show feedback from last action
 	if (lastFeedback) {
-		console.log(lastFeedback);
+		lines.push('');
+		lines.push(lastFeedback);
 	}
+
+	// Calculate dimensions and centering
+	const frameWidth = 50; // Fixed width for the frame
+	const contentHeight = lines.length + 2; // +2 for top and bottom borders
+	const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
+
+	// Render top padding (vertical centering)
+	for (let i = 0; i < topPadding; i++) {
+		console.log('');
+	}
+
+	// Render top border
+	console.log(createHorizontalBorder(frameWidth, leftPadding, true));
+
+	// Render content with side borders
+	for (const line of lines) {
+		console.log(createFramedLine(line, frameWidth, leftPadding));
+	}
+
+	// Render bottom border
+	console.log(createHorizontalBorder(frameWidth, leftPadding, false));
 	}, 500);
 };
 
@@ -201,21 +268,78 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 			if (currentLevelIndex + 1 < levels.length) {
 				initializeLevel(currentLevelIndex + 1);
 				console.clear();
-				console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
-				console.log(`${colors.bright}Stig ${currentLevelIndex + 1}/${levels.length}${colors.reset}`);
-				console.log(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}\n`);
-				console.log(`${colors.brightGreen}Leikur byrjar...${colors.reset}\n`);
+
+				const nextLevelLines: string[] = [];
+				nextLevelLines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+				nextLevelLines.push('');
+				nextLevelLines.push(`${colors.bright}Stig ${currentLevelIndex + 1}/${levels.length}${colors.reset}`);
+				nextLevelLines.push(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}`);
+				nextLevelLines.push('');
+				nextLevelLines.push(`${colors.brightGreen}Leikur byrjar...${colors.reset}`);
+
+				const frameWidth = 50;
+				const contentHeight = nextLevelLines.length + 2;
+				const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
+
+				for (let i = 0; i < topPadding; i++) {
+					console.log('');
+				}
+
+				console.log(createHorizontalBorder(frameWidth, leftPadding, true));
+				for (const line of nextLevelLines) {
+					console.log(createFramedLine(line, frameWidth, leftPadding));
+				}
+				console.log(createHorizontalBorder(frameWidth, leftPadding, false));
+
 				startGameLoop();
 			} else {
 				// All levels completed!
 				console.clear();
-				console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
-				console.log(`\n${colors.bright}${colors.brightMagenta}🎊 TIL HAMINGJU! 🎊${colors.reset}`);
-				console.log(`${colors.brightGreen}Þú hefur klárað öll ${levels.length} stigin!${colors.reset}\n`);
+
+				const allCompleteLines: string[] = [];
+				allCompleteLines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+				allCompleteLines.push('');
+				allCompleteLines.push(`${colors.bright}${colors.brightMagenta}🎊 TIL HAMINGJU! 🎊${colors.reset}`);
+				allCompleteLines.push(`${colors.brightGreen}Þú hefur klárað öll ${levels.length} stigin!${colors.reset}`);
+
+				const frameWidth = 50;
+				const contentHeight = allCompleteLines.length + 2;
+				const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
+
+				for (let i = 0; i < topPadding; i++) {
+					console.log('');
+				}
+
+				console.log(createHorizontalBorder(frameWidth, leftPadding, true));
+				for (const line of allCompleteLines) {
+					console.log(createFramedLine(line, frameWidth, leftPadding));
+				}
+				console.log(createHorizontalBorder(frameWidth, leftPadding, false));
+
 				setTimeout(() => process.exit(0), 2000);
 			}
 		} else if (ch === 'n' || ch === 'N') {
-			console.log(`\n${colors.brightCyan}Takk fyrir að spila!${colors.reset}\n`);
+			console.clear();
+
+			const goodbyeLines: string[] = [];
+			goodbyeLines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+			goodbyeLines.push('');
+			goodbyeLines.push(`${colors.brightCyan}Takk fyrir að spila!${colors.reset}`);
+
+			const frameWidth = 50;
+			const contentHeight = goodbyeLines.length + 2;
+			const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
+
+			for (let i = 0; i < topPadding; i++) {
+				console.log('');
+			}
+
+			console.log(createHorizontalBorder(frameWidth, leftPadding, true));
+			for (const line of goodbyeLines) {
+				console.log(createFramedLine(line, frameWidth, leftPadding));
+			}
+			console.log(createHorizontalBorder(frameWidth, leftPadding, false));
+
 			setTimeout(() => process.exit(0), 1000);
 		}
 		return;
@@ -265,28 +389,35 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 			if (typedProgress === fullTarget) {
 				if (gameInterval) clearInterval(gameInterval);
 				console.clear();
-				console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
-				console.log(`\n${colors.bright}${colors.brightMagenta}🎉 TIL HAMINGJU! Þú kláraðir orðið: ${colors.brightYellow}${fullTarget}${colors.reset}\n`);
-				console.log(`${colors.bright}Stig ${currentLevelIndex + 1}/${levels.length} lokið!${colors.reset}\n`);
+
+				// Build completion screen
+				const completionLines: string[] = [];
+				completionLines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+				completionLines.push('');
+				completionLines.push(`${colors.bright}${colors.brightMagenta}🎉 TIL HAMINGJU! Þú kláraðir orðið: ${colors.brightYellow}${fullTarget}${colors.reset}`);
+				completionLines.push(`${colors.bright}Stig ${currentLevelIndex + 1}/${levels.length} lokið!${colors.reset}`);
+				completionLines.push('');
 
 				// Display performance stats
 				const isPerfect = errorCount === 0 && missedLetters === 0;
 
-				console.log(`${colors.bright}${colors.brightCyan}=== STATTAR ===${colors.reset}`);
+				completionLines.push(`${colors.bright}${colors.brightCyan}=== STATTAR ===${colors.reset}`);
+				completionLines.push('');
 
 				if (isPerfect) {
-					console.log(`${colors.bright}${colors.brightGreen}★ FULLKOMIÐ! ★${colors.reset}`);
-					console.log(`${colors.brightGreen}Engar villur og náðir hverjum staf í fyrstu tilraun!${colors.reset}\n`);
+					completionLines.push(`${colors.bright}${colors.brightGreen}★ FULLKOMIÐ! ★${colors.reset}`);
+					completionLines.push(`${colors.brightGreen}Engar villur og náðir hverjum staf í fyrstu tilraun!${colors.reset}`);
 				} else {
-					console.log(`${colors.brightYellow}Villur (rangar lyklar): ${colors.brightRed}${errorCount}${colors.reset}`);
-					console.log(`${colors.brightYellow}Missaðir stafir: ${colors.brightRed}${missedLetters}${colors.reset}\n`);
+					completionLines.push(`${colors.brightYellow}Villur (rangar lyklar): ${colors.brightRed}${errorCount}${colors.reset}`);
+					completionLines.push(`${colors.brightYellow}Missaðir stafir: ${colors.brightRed}${missedLetters}${colors.reset}`);
+					completionLines.push('');
 
 					if (errorCount === 0 && missedLetters > 0) {
-						console.log(`${colors.cyan}Frábær nákvæmni! Reyndu að ná stöfum hraðar næst.${colors.reset}\n`);
+						completionLines.push(`${colors.cyan}Frábær nákvæmni! Reyndu að ná stöfum hraðar næst.${colors.reset}`);
 					} else if (errorCount > 0 && missedLetters === 0) {
-						console.log(`${colors.cyan}Fullkomin skilvirkni! Einbeittu þér að því að fækka villum.${colors.reset}\n`);
+						completionLines.push(`${colors.cyan}Fullkomin skilvirkni! Einbeittu þér að því að fækka villum.${colors.reset}`);
 					} else {
-						console.log(`${colors.cyan}Haltu áfram að æfa til að ná fullkomnum árangri!${colors.reset}\n`);
+						completionLines.push(`${colors.cyan}Haltu áfram að æfa til að ná fullkomnum árangri!${colors.reset}`);
 					}
 				}
 
@@ -295,11 +426,31 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 
 				// Ask if user wants to continue to next level
 				if (currentLevelIndex + 1 < levels.length) {
-					console.log(`${colors.bright}${colors.brightYellow}Viltu halda áfram í næsta stig? (y/n)${colors.reset}`);
+					completionLines.push('');
+					completionLines.push(`${colors.bright}${colors.brightYellow}Viltu halda áfram í næsta stig? (y/n)${colors.reset}`);
 					isWaitingForLevelChoice = true;
 				} else {
 					// Last level completed
-					console.log(`${colors.bright}${colors.brightMagenta}🎊 Þú hefur klárað öll stigin! 🎊${colors.reset}\n`);
+					completionLines.push('');
+					completionLines.push(`${colors.bright}${colors.brightMagenta}🎊 Þú hefur klárað öll stigin! 🎊${colors.reset}`);
+				}
+
+				// Render with frame
+				const frameWidth = 50;
+				const contentHeight = completionLines.length + 2;
+				const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
+
+				for (let i = 0; i < topPadding; i++) {
+					console.log('');
+				}
+
+				console.log(createHorizontalBorder(frameWidth, leftPadding, true));
+				for (const line of completionLines) {
+					console.log(createFramedLine(line, frameWidth, leftPadding));
+				}
+				console.log(createHorizontalBorder(frameWidth, leftPadding, false));
+
+				if (currentLevelIndex + 1 >= levels.length) {
 					setTimeout(() => process.exit(0), 2000);
 				}
 			}
@@ -322,25 +473,45 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 // Initialize the first level and start the game
 initializeLevel(0);
 
-// Initial display
+// Initial display with frame
 console.clear();
-console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
-console.log(`${colors.bright}Stig 1/${levels.length}${colors.reset}`);
-console.log(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}`);
-console.log(`\n${colors.cyan}Stjórnun:${colors.reset}`);
-console.log(`  ${colors.green}- Stafir birtast sjálfkrafa á hálfs sekúndu fresti${colors.reset}`);
-console.log(`  ${colors.green}- Ýttu á stafatakka til að velja þá${colors.reset}`);
-console.log(`  ${colors.green}- Ýttu á F1 til að kveikja/slökkva á hljóði${colors.reset}`);
-console.log(`  ${colors.green}- Ýttu á Ctrl+C til að hætta${colors.reset}\n`);
-console.log(`${colors.magenta}--- Borð ---${colors.reset}`);
+
+const initialLines: string[] = [];
+initialLines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+initialLines.push('');
+initialLines.push(`${colors.bright}Stig 1/${levels.length}${colors.reset}`);
+initialLines.push(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}`);
+initialLines.push('');
+initialLines.push(`${colors.cyan}Stjórnun:${colors.reset}`);
+initialLines.push(`  ${colors.green}- Stafir birtast sjálfkrafa á hálfs sekúndu fresti${colors.reset}`);
+initialLines.push(`  ${colors.green}- Ýttu á stafatakka til að velja þá${colors.reset}`);
+initialLines.push(`  ${colors.green}- Ýttu á F1 til að kveikja/slökkva á hljóði${colors.reset}`);
+initialLines.push(`  ${colors.green}- Ýttu á Ctrl+C til að hætta${colors.reset}`);
+initialLines.push('');
+initialLines.push(`${colors.magenta}--- Borð ---${colors.reset}`);
 for (let i = 0; i < board.length; i++) {
 	if (i === 16) {
-		console.log(`${colors.brightYellow}# (vallína)${colors.reset}`);
+		initialLines.push(`${colors.brightYellow}# (vallína)${colors.reset}`);
 	} else {
-		console.log('');
+		initialLines.push('');
 	}
 }
-console.log(`\n${colors.brightGreen}Leikur byrjar...${colors.reset}\n`);
+initialLines.push('');
+initialLines.push(`${colors.brightGreen}Leikur byrjar...${colors.reset}`);
+
+const frameWidth = 50;
+const contentHeight = initialLines.length + 2;
+const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
+
+for (let i = 0; i < topPadding; i++) {
+	console.log('');
+}
+
+console.log(createHorizontalBorder(frameWidth, leftPadding, true));
+for (const line of initialLines) {
+	console.log(createFramedLine(line, frameWidth, leftPadding));
+}
+console.log(createHorizontalBorder(frameWidth, leftPadding, false));
 
 if (process.stdin.isTTY) {
 	process.stdin.setRawMode(true);
