@@ -1,5 +1,5 @@
 import keypress from 'keypress';
-import levels from './levels.js';
+import levels from './levels.ts';
 
 // ANSI Color codes for terminal styling
 const colors = {
@@ -17,18 +17,30 @@ const colors = {
 	brightBlue: '\x1b[94m',
 	brightMagenta: '\x1b[95m',
 	brightCyan: '\x1b[96m'
-};
+} as const;
 
-const alphabet = ["a","á","b","d","ð","e","é","f","g","h","i","í","j","k","l","m","n","o","ó","p","r","s","t","u","ú","v","x","y","ý","þ","æ","ö"];
+interface BoardItem {
+	generated: string;
+	success: boolean;
+}
+
+interface Key {
+	name: string;
+	ctrl?: boolean;
+	meta?: boolean;
+	shift?: boolean;
+}
+
+const alphabet: string[] = ["a","á","b","d","ð","e","é","f","g","h","i","í","j","k","l","m","n","o","ó","p","r","s","t","u","ú","v","x","y","ý","þ","æ","ö"];
 
 // Accepts a target string, returns an array of its constituents
-const split = (word) => {
+const split = (word: string): string[] => {
 	const parts = word.split(' ');
 	return parts.length === 1 ? word.split('') : parts;
 };
 
 // Take in all the parts + some spaces and mix them together
-const mix = (splitWord, alphabet) => {
+const mix = (splitWord: string[], alphabet: string[]): string[] => {
 	let selection = splitWord.concat(alphabet);
 	selection = selection.concat(splitWord);
 	selection = selection.concat(splitWord);
@@ -46,10 +58,10 @@ keypress(process.stdin);
 const splitWord = split(levels[0].target);
 const bagOfChars = mix(splitWord, alphabet);
 
-let targetLeft = levels[0].target;
-let typedProgress = ""; // Track what's been typed successfully
-let lastFeedback = ""; // Track feedback from last key press
-const board = new Array(19);
+let targetLeft: string = levels[0].target;
+let typedProgress: string = ""; // Track what's been typed successfully
+let lastFeedback: string = ""; // Track feedback from last key press
+const board: (BoardItem | undefined)[] = new Array(19);
 
 // Auto-progress game every half second (faster!)
 const gameInterval = setInterval(() => {
@@ -65,11 +77,11 @@ const gameInterval = setInterval(() => {
 	for (let i = board.length - 1; i >= 0; i--) {
 		if (board[i] !== undefined) {
 			if (i === 4) {
-				const marker = board[i].success ? `${colors.brightGreen}✓` : `${colors.brightYellow}#`;
-				const letterColor = board[i].success ? colors.brightGreen : colors.brightMagenta;
-				console.log(`${marker}${letterColor}${board[i].generated}${colors.reset}`);
+				const marker = board[i]!.success ? `${colors.brightGreen}✓` : `${colors.brightYellow}#`;
+				const letterColor = board[i]!.success ? colors.brightGreen : colors.brightMagenta;
+				console.log(`${marker}${letterColor}${board[i]!.generated}${colors.reset}`);
 			} else {
-				console.log(`${colors.cyan}${board[i].generated}${colors.reset}`);
+				console.log(`${colors.cyan}${board[i]!.generated}${colors.reset}`);
 			}
 		} else {
 			console.log('');
@@ -87,7 +99,7 @@ const gameInterval = setInterval(() => {
 	}
 }, 500);
 
-process.stdin.on('keypress', (ch, key) => {
+process.stdin.on('keypress', (ch: string, key: Key) => {
 	// Handle Ctrl+C to quit
 	if (key && key.ctrl && key.name === 'c') {
 		clearInterval(gameInterval);
