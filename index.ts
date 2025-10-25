@@ -143,9 +143,9 @@ const startGameLoop = () => {
 	// Render
 	console.clear();
 	console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
-	for (let i = board.length - 1; i >= 0; i--) {
+	for (let i = 0; i < board.length; i++) {
 		if (board[i] !== undefined) {
-			if (i === 4) {
+			if (i === 16) {
 				const marker = board[i]!.success ? `${colors.brightGreen}✓` : `${colors.brightYellow}#`;
 				const letterColor = board[i]!.success ? colors.brightGreen : colors.brightMagenta;
 				console.log(`${marker}${letterColor}${board[i]!.generated}${colors.reset}`);
@@ -160,7 +160,7 @@ const startGameLoop = () => {
 	// Show progress with typed part and remaining part
 	const fullTarget = levels[currentLevelIndex].target;
 	const remaining = fullTarget.substring(typedProgress.length);
-	console.log(`\n${colors.bright}Framvinda: ${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
+	console.log(`\n${colors.bright}${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
 
 	// Show feedback from last action
 	if (lastFeedback) {
@@ -228,14 +228,14 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 	const fullTarget = levels[currentLevelIndex].target;
 	const nextExpectedChar = fullTarget[typedProgress.length];
 
-	// Check if there's a letter at the selection line (position 4)
-	if (board[4] !== undefined && board[4].generated) {
-		const letterAtSelection = board[4].generated;
+	// Check if there's a letter at the selection line (position 16)
+	if (board[16] !== undefined && board[16].generated) {
+		const letterAtSelection = board[16].generated;
 
 		// Check if pressed key matches the letter at selection AND it's the next expected character
 		if (pickedChar === letterAtSelection && letterAtSelection === nextExpectedChar) {
 			// Success! Caught the right letter
-			board[4].success = true;
+			board[16].success = true;
 			typedProgress += letterAtSelection;
 			lastFeedback = `${colors.brightGreen}✓ Náðir '${letterAtSelection}'! Frábært!${colors.reset}`;
 
@@ -315,7 +315,7 @@ console.log(`  ${colors.green}- Ýttu á F1 til að kveikja/slökkva á hljóði
 console.log(`  ${colors.green}- Ýttu á Ctrl+C til að hætta${colors.reset}\n`);
 console.log(`${colors.magenta}--- Borð ---${colors.reset}`);
 for (let i = 0; i < board.length; i++) {
-	if (i === 4) {
+	if (i === 16) {
 		console.log(`${colors.brightYellow}# (vallína)${colors.reset}`);
 	} else {
 		console.log('');
