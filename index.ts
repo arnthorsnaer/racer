@@ -115,13 +115,66 @@ const mix = (splitWord: string[], alphabet: string[]): string[] => {
 	return selection.concat(spaces);
 };
 
+// FR-001 & FR-002: Generate a smart bag of characters based on current progress
+// Increases probability of next required letter and eliminates irrelevant letters
+const generateBagOfChars = (typedProgress: string, fullTarget: string): string[] => {
+	// Get the remaining part of the target word
+	const remaining = fullTarget.substring(typedProgress.length);
+
+	if (remaining.length === 0) {
+		return [' ']; // No more letters needed
+	}
+
+	// Get the next required letter (the one we need RIGHT NOW)
+	const nextLetter = remaining[0].toLowerCase();
+
+	// Get all unique letters still needed (including duplicates in remaining)
+	const remainingLetters = remaining.toLowerCase().split('');
+
+	let selection: string[] = [];
+
+	// FR-001: Add the NEXT required letter many times (10x) for high probability
+	for (let i = 0; i < 10; i++) {
+		selection.push(nextLetter);
+	}
+
+	// FR-002: Only add letters that are still needed in the remaining part
+	// Add each remaining letter 2 times (but not the next letter again since it's already added 10x)
+	const uniqueRemaining = new Set(remainingLetters);
+	uniqueRemaining.forEach(letter => {
+		if (letter !== nextLetter && letter !== ' ') {
+			selection.push(letter);
+			selection.push(letter);
+		}
+	});
+
+	// Add some spaces to create gaps
+	const numberOfSpaces = Math.floor(selection.length / 4);
+	const spaces = new Array(numberOfSpaces).fill(' ');
+
+	return selection.concat(spaces);
+};
+
+// FR-003: Fisher-Yates shuffle algorithm for randomizing level order
+const shuffleArray = <T>(array: T[]): T[] => {
+	const shuffled = [...array];
+	for (let i = shuffled.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+	}
+	return shuffled;
+};
+
 // Make `process.stdin` begin emitting "keypress" events
 keypress(process.stdin);
 
 // Set encoding to UTF-8 to properly handle accented characters
 process.stdin.setEncoding('utf8');
 
-// Track current level
+// FR-003: Create a randomized order of level indices
+const shuffledLevelIndices: number[] = shuffleArray(levels.map((_, index) => index));
+
+// Track current level (index into shuffledLevelIndices)
 let currentLevelIndex: number = 0;
 
 let splitWord!: string[];
@@ -142,12 +195,15 @@ let isWaitingForLevelChoice: boolean = false;
 // Function to initialize game state for a level
 const initializeLevel = (levelIndex: number) => {
 	currentLevelIndex = levelIndex;
-	splitWord = split(levels[currentLevelIndex].target);
-	bagOfChars = mix(splitWord, alphabet);
-	targetLeft = levels[currentLevelIndex].target;
+	// FR-003: Use shuffled level order
+	const actualLevelIndex = shuffledLevelIndices[currentLevelIndex];
+	splitWord = split(levels[actualLevelIndex].target);
+	targetLeft = levels[actualLevelIndex].target;
 	typedProgress = "";
+	// FR-001 & FR-002: Generate smart bag based on current progress
+	bagOfChars = generateBagOfChars(typedProgress, targetLeft);
 	lastFeedback = "";
-	board = new Array(19);
+	board = new Array(16);
 	errorCount = 0;
 	missedLetters = 0;
 	catchCount = 0;
@@ -161,7 +217,7 @@ const startGameLoop = () => {
 		clearInterval(gameInterval);
 	}
 
-	// Auto-progress game every half second (faster!)
+	// Auto-progress game every 400ms (20% faster than before!)
 	gameInterval = setInterval(() => {
 	// Generate new letter
 	const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
@@ -169,7 +225,9 @@ const startGameLoop = () => {
 	// Check if we're about to lose a needed letter
 	const poppedItem = board[board.length - 1];
 	if (poppedItem !== undefined) {
-		const fullTarget = levels[currentLevelIndex].target;
+		// FR-003: Use shuffled level order
+		const actualLevelIndex = shuffledLevelIndices[currentLevelIndex];
+		const fullTarget = levels[actualLevelIndex].target;
 		const nextExpectedChar = fullTarget[typedProgress.length];
 		// If the popped letter was the next expected character and wasn't caught, count it as missed
 		if (poppedItem.generated.toLowerCase() === nextExpectedChar.toLowerCase() && !poppedItem.success) {
@@ -194,8 +252,8 @@ const startGameLoop = () => {
 	lines.push('');
 
 	for (let i = 0; i < board.length; i++) {
-		// Always show the catch character at position 16
-		if (i === 16) {
+		// Always show the catch character at position 13
+		if (i === 13) {
 			if (board[i] !== undefined) {
 				const marker = board[i]!.success ? `${colors.brightGreen}✓` : `${colors.brightYellow}#`;
 				const letterColor = board[i]!.success ? colors.brightGreen : colors.brightMagenta;
@@ -204,19 +262,21 @@ const startGameLoop = () => {
 				// Show just the catch character even when no letter is there
 				lines.push(`${colors.brightYellow}#${colors.reset}`);
 			}
-		} else if (i < 16) {
-			// Only render positions before the catch line (0-15)
+		} else if (i < 13) {
+			// Only render positions before the catch line (0-12)
 			if (board[i] !== undefined) {
 				lines.push(`${colors.cyan}${board[i]!.generated}${colors.reset}`);
 			} else {
 				lines.push('');
 			}
 		}
-		// Skip positions after the catch line (17-18) to eliminate spacing
+		// Skip positions after the catch line (14-15) to eliminate spacing
 	}
 
 	// Show progress with typed part and remaining part
-	const fullTarget = levels[currentLevelIndex].target;
+	// FR-003: Use shuffled level order
+	const actualLevelIndex = shuffledLevelIndices[currentLevelIndex];
+	const fullTarget = levels[actualLevelIndex].target;
 	const remaining = fullTarget.substring(typedProgress.length);
 	lines.push('');
 	lines.push(`${colors.bright}${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
@@ -250,7 +310,7 @@ const startGameLoop = () => {
 
 	// Render bottom border
 	console.log(createHorizontalBorder(frameWidth, leftPadding, false));
-	}, 500);
+	}, 400);
 };
 
 process.stdin.on('keypress', (ch: string, key: Key) => {
@@ -366,19 +426,25 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 	}
 
 	const pickedChar = ch; // Use the actual character typed
-	const fullTarget = levels[currentLevelIndex].target;
+	// FR-003: Use shuffled level order
+	const actualLevelIndex = shuffledLevelIndices[currentLevelIndex];
+	const fullTarget = levels[actualLevelIndex].target;
 	const nextExpectedChar = fullTarget[typedProgress.length];
 
-	// Check if there's a letter at the selection line (position 16)
-	if (board[16] !== undefined && board[16].generated) {
-		const letterAtSelection = board[16].generated;
+	// Check if there's a letter at the selection line (position 13)
+	if (board[13] !== undefined && board[13].generated) {
+		const letterAtSelection = board[13].generated;
 
 		// Check if pressed key matches the letter at selection AND it's the next expected character
 		if (pickedChar.toLowerCase() === letterAtSelection.toLowerCase() && letterAtSelection.toLowerCase() === nextExpectedChar.toLowerCase()) {
 			// Success! Caught the right letter
-			board[16].success = true;
+			board[13].success = true;
 			typedProgress += letterAtSelection;
 			lastFeedback = `${colors.brightGreen}✓ Náðir '${letterAtSelection}'! Frábært!${colors.reset}`;
+
+			// FR-001 & FR-002: Regenerate bag after each successful catch
+			// This updates probabilities for the NEXT letter and removes letters no longer needed
+			bagOfChars = generateBagOfChars(typedProgress, fullTarget);
 
 			// Play success sound with increasing pitch
 			const successSoundIndex = Math.min(catchCount, 29); // Cap at 29 (we have 30 sounds: 0-29)
@@ -483,14 +549,14 @@ initialLines.push(`${colors.bright}Stig 1/${levels.length}${colors.reset}`);
 initialLines.push(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}`);
 initialLines.push('');
 initialLines.push(`${colors.cyan}Stjórnun:${colors.reset}`);
-initialLines.push(`  ${colors.green}- Stafir birtast sjálfkrafa á hálfs sekúndu fresti${colors.reset}`);
+initialLines.push(`  ${colors.green}- Stafir birtast sjálfkrafa á 0.4 sekúndu fresti${colors.reset}`);
 initialLines.push(`  ${colors.green}- Ýttu á stafatakka til að velja þá${colors.reset}`);
 initialLines.push(`  ${colors.green}- Ýttu á F1 til að kveikja/slökkva á hljóði${colors.reset}`);
 initialLines.push(`  ${colors.green}- Ýttu á Ctrl+C til að hætta${colors.reset}`);
 initialLines.push('');
 initialLines.push(`${colors.magenta}--- Borð ---${colors.reset}`);
 for (let i = 0; i < board.length; i++) {
-	if (i === 16) {
+	if (i === 13) {
 		initialLines.push(`${colors.brightYellow}# (vallína)${colors.reset}`);
 	} else {
 		initialLines.push('');
