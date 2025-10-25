@@ -91,6 +91,28 @@ describe('game-logic (pure functions)', () => {
 
 			expect(newState.missedLetters).toBe(1);
 		});
+
+		it('should NOT count missed letters when space is popped (target has no spaces)', () => {
+			const state = createInitialGameState();
+			// Put a SPACE at the end (about to be popped) - these are added for visual gaps
+			state.board[15] = { generated: ' ', success: false };
+
+			const newState = updateBoardWithNewChar(state, 'x', 'test');
+
+			// Space should NOT be counted as a miss since target word doesn't contain spaces
+			expect(newState.missedLetters).toBe(0);
+		});
+
+		it('should NOT count missed letters when unneeded letter is popped', () => {
+			const state = createInitialGameState();
+			// Put a letter that exists later in the word at position 15
+			state.board[15] = { generated: 's', success: false };
+
+			const newState = updateBoardWithNewChar(state, 'x', 'test');
+
+			// 's' is in the word but not the NEXT expected letter, so shouldn't count as miss
+			expect(newState.missedLetters).toBe(0);
+		});
 	});
 
 	describe('getTickSound', () => {
