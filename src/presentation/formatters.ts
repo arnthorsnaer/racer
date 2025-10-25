@@ -107,13 +107,21 @@ export const buildGameScreen = (
 	state: GameState,
 	fullTarget: string,
 	currentLevel: number,
-	totalLevels: number,
+	completedWords: number,
+	score: number,
 	feedback: string,
 	catchLinePosition: number
 ): string[] => {
 	const lines: string[] = [];
 
 	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
+	lines.push('');
+
+	// Adaptive difficulty info
+	const levelInfo = `${colors.electricCyan}STIG: ${currentLevel}${colors.reset} ${colors.sunsetOrange}(${fullTarget.length}-stafa orð)${colors.reset}`;
+	const wordInfo = `${colors.limeGreen}Orð kláruð: ${completedWords}${colors.reset}`;
+	const scoreInfo = `${colors.cosmicPurple}Skor: ${score.toFixed(1)}${colors.reset}`;
+	lines.push(`${levelInfo}  ${wordInfo}  ${scoreInfo}`);
 	lines.push('');
 
 	// Board
@@ -141,7 +149,8 @@ export const buildGameScreen = (
 export const buildWelcomeScreen = (
 	targetWord: string,
 	currentLevel: number,
-	totalLevels: number,
+	completedWords: number,
+	score: number,
 	boardSize: number,
 	catchLinePosition: number
 ): string[] => {
@@ -149,8 +158,9 @@ export const buildWelcomeScreen = (
 
 	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 	lines.push('');
-	lines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevel + 1}/${totalLevels}${colors.reset}`);
+	lines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevel} (${targetWord.length}-stafa orð)${colors.reset}`);
 	lines.push(`${colors.bright}Markmiðsorð: ${colors.sunsetOrange}${targetWord}${colors.reset}`);
+	lines.push(`${colors.limeGreen}Orð kláruð: ${completedWords}${colors.reset}  ${colors.cosmicPurple}Skor: ${score.toFixed(1)}${colors.reset}`);
 	lines.push('');
 	lines.push(`${colors.electricCyan}Stjórnun:${colors.reset}`);
 	lines.push(`  ${colors.arcadeGreen}▶ Stafir birtast sjálfkrafa á 0.4 sekúndu fresti${colors.reset}`);
@@ -180,17 +190,19 @@ export const buildWelcomeScreen = (
 export const buildCompletionScreen = (
 	fullTarget: string,
 	currentLevel: number,
-	totalLevels: number,
+	completedWords: number,
+	score: number,
 	stats: PerformanceStats,
 	feedback: FeedbackMessage,
-	hasNextLevel: boolean
+	progressionMessage: string
 ): string[] => {
 	const lines: string[] = [];
 
 	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 	lines.push('');
 	lines.push(`${colors.bright}${colors.neonPink}★ TIL HAMINGJU! Þú kláraðir orðið: ${colors.sunsetOrange}${fullTarget}${colors.reset}`);
-	lines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevel + 1}/${totalLevels} lokið!${colors.reset}`);
+	lines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevel} lokið!${colors.reset}`);
+	lines.push(`${colors.limeGreen}Orð kláruð: ${completedWords}${colors.reset}  ${colors.cosmicPurple}Skor: ${score.toFixed(1)}${colors.reset}`);
 	lines.push('');
 
 	// Display performance stats
@@ -207,15 +219,13 @@ export const buildCompletionScreen = (
 		lines.push(`${colors.electricCyan}${feedback.message}${colors.reset}`);
 	}
 
-	// Ask if user wants to continue to next level
-	if (hasNextLevel) {
-		lines.push('');
-		lines.push(`${colors.bright}${colors.sunsetOrange}Viltu halda áfram í næsta stig? (y/n)${colors.reset}`);
-	} else {
-		// Last level completed
-		lines.push('');
-		lines.push(`${colors.bright}${colors.neonPink}★ Þú hefur klárað öll stigin! ★${colors.reset}`);
-	}
+	// Show progression message
+	lines.push('');
+	lines.push(`${colors.bright}${colors.electricBlue}${progressionMessage}${colors.reset}`);
+
+	// Ask if user wants to continue
+	lines.push('');
+	lines.push(`${colors.bright}${colors.sunsetOrange}Viltu halda áfram? (y/n)${colors.reset}`);
 
 	return lines;
 };

@@ -16,14 +16,25 @@ import {
 	buildGoodbyeScreen,
 } from './src/presentation/formatters.js';
 import {
-	createShuffledLevelIndices,
-	getActualLevel,
-	hasNextLevel,
-	getNextLevelIndex,
-} from './src/core/level-progression.js';
+	filterSingleWords,
+	organizeWordsByLength,
+	getMaxWordLength,
+	selectWordAtLength,
+	type WordsByLength,
+} from './src/core/word-pool.js';
 import {
 	generateBagOfChars,
 } from './src/core/word-generation.js';
+import {
+	createInitialDifficultyState,
+	updateDifficultyState,
+	type DifficultyState,
+} from './src/core/adaptive-difficulty.js';
+import {
+	getLevelFromWordLength,
+	calculateScore,
+	STARTING_WORD_LENGTH,
+} from './src/core/adaptive-scoring.js';
 import {
 	createInitialGameState,
 	updateBoardWithNewChar,
@@ -49,27 +60,43 @@ const input = createInputAdapter();
 const FRAME_WIDTH = 50;
 const GAME_TICK_INTERVAL = 400; // ms
 
+// Initialize word pool and adaptive difficulty
+const singleWordLevels = filterSingleWords(levels);
+const wordsByLength: WordsByLength = organizeWordsByLength(singleWordLevels);
+const maxWordLength = getMaxWordLength(wordsByLength);
+
 // Initialize game state
-const shuffledLevelIndices = createShuffledLevelIndices(levels);
-let currentLevelIndex = 0;
+let difficultyState: DifficultyState = createInitialDifficultyState(STARTING_WORD_LENGTH, maxWordLength);
 let gameState: GameState = createInitialGameState();
 let bagOfChars: string[] = [];
 let currentTarget: string = '';
 let lastFeedback: string = '';
+let progressionMessage: string = '';
 let gameInterval: NodeJS.Timeout | null = null;
-let isWaitingForLevelChoice = false;
+let isWaitingForContinue = false;
 
 /**
- * Initialize a level - sets up state for a new level
+ * Select and initialize a new word based on current difficulty
  */
-const initializeLevel = (levelIndex: number): void => {
-	currentLevelIndex = levelIndex;
-	const level = getActualLevel(shuffledLevelIndices, currentLevelIndex, levels);
-	currentTarget = level.target;
+const initializeWord = (): void => {
+	const selectedWord = selectWordAtLength(
+		wordsByLength,
+		difficultyState.currentWordLength,
+		difficultyState.usedWords
+	);
+
+	if (!selectedWord) {
+		// Fallback: if no word found, try closest length
+		currentTarget = 'error';
+		console.error('No word found for length:', difficultyState.currentWordLength);
+		return;
+	}
+
+	currentTarget = selectedWord;
 	gameState = createInitialGameState();
 	bagOfChars = generateBagOfChars(gameState.typedProgress, currentTarget);
 	lastFeedback = '';
-	isWaitingForLevelChoice = false;
+	isWaitingForContinue = false;
 };
 
 /**
@@ -103,11 +130,15 @@ const startGameLoop = (): void => {
 		sound.play(tickSound);
 
 		// Render game screen
+		const currentLevel = getLevelFromWordLength(difficultyState.currentWordLength);
+		const currentScore = calculateScore(currentLevel, difficultyState.completedWords);
+
 		const lines = buildGameScreen(
 			gameState,
 			currentTarget,
-			currentLevelIndex,
-			levels.length,
+			currentLevel,
+			difficultyState.completedWords,
+			currentScore,
 			lastFeedback,
 			CATCH_LINE_POSITION
 		);
@@ -126,24 +157,30 @@ const handleKeypress = (ch: string, key: Key): void => {
 		process.exit(0);
 	}
 
-	// If waiting for level choice, handle y/n input
-	if (isWaitingForLevelChoice) {
+	// If waiting for continue choice, handle y/n input
+	if (isWaitingForContinue) {
 		if (ch === 'y' || ch === 'Y') {
-			// Check if there's a next level
-			if (hasNextLevel(currentLevelIndex, levels.length)) {
-				initializeLevel(getNextLevelIndex(currentLevelIndex));
+			// Initialize new word at current difficulty
+			initializeWord();
 
-				const lines = buildNextLevelScreen(currentTarget, currentLevelIndex, levels.length);
-				renderScreen(lines);
+			const currentLevel = getLevelFromWordLength(difficultyState.currentWordLength);
+			const currentScore = calculateScore(currentLevel, difficultyState.completedWords);
 
-				startGameLoop();
-			} else {
-				// All levels completed!
-				const lines = buildAllCompleteScreen(levels.length);
-				renderScreen(lines);
+			// Show progression screen briefly
+			const lines = [
+				`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`,
+				'',
+				`${colors.electricBlue}Stig ${currentLevel} (${currentTarget.length}-stafa orð)${colors.reset}`,
+				`${colors.sunsetOrange}Næsta orð: ${currentTarget}${colors.reset}`,
+				`${colors.limeGreen}Orð kláruð: ${difficultyState.completedWords}${colors.reset}  ${colors.cosmicPurple}Skor: ${currentScore.toFixed(1)}${colors.reset}`,
+				'',
+				`${colors.bright}${progressionMessage}${colors.reset}`,
+				'',
+				`${colors.limeGreen}Leikur byrjar...${colors.reset}`,
+			];
+			renderScreen(lines);
 
-				setTimeout(() => process.exit(0), 2000);
-			}
+			startGameLoop();
 		} else if (ch === 'n' || ch === 'N') {
 			const lines = buildGoodbyeScreen();
 			renderScreen(lines);
@@ -199,26 +236,32 @@ const handleKeypress = (ch: string, key: Key): void => {
 		const stats = calculateStats(gameState.errorCount, gameState.missedLetters);
 		const feedback = generateFeedback(stats);
 
+		// Update difficulty state based on performance
+		const updateResult = updateDifficultyState(difficultyState, currentTarget, stats);
+		difficultyState = updateResult.newState;
+		progressionMessage = updateResult.progression.message;
+
+		// Calculate new score
+		const currentLevel = getLevelFromWordLength(difficultyState.currentWordLength);
+		const currentScore = calculateScore(currentLevel, difficultyState.completedWords);
+
 		// Build completion screen
 		const lines = buildCompletionScreen(
 			currentTarget,
-			currentLevelIndex,
-			levels.length,
+			currentLevel,
+			difficultyState.completedWords,
+			currentScore,
 			stats,
 			feedback,
-			hasNextLevel(currentLevelIndex, levels.length)
+			progressionMessage
 		);
 		renderScreen(lines);
 
 		// Play victory sound
 		sound.play('victory');
 
-		// Set waiting for choice if there are more levels
-		if (hasNextLevel(currentLevelIndex, levels.length)) {
-			isWaitingForLevelChoice = true;
-		} else {
-			setTimeout(() => process.exit(0), 2000);
-		}
+		// Always wait for continue choice (adaptive difficulty never ends)
+		isWaitingForContinue = true;
 	}
 };
 
@@ -228,14 +271,19 @@ const main = (): void => {
 	input.initialize();
 	input.onKeypress(handleKeypress);
 
-	// Initialize first level
-	initializeLevel(0);
+	// Initialize first word
+	initializeWord();
+
+	// Calculate initial values for display
+	const currentLevel = getLevelFromWordLength(difficultyState.currentWordLength);
+	const currentScore = calculateScore(currentLevel, difficultyState.completedWords);
 
 	// Show welcome screen
 	const lines = buildWelcomeScreen(
 		currentTarget,
-		currentLevelIndex,
-		levels.length,
+		currentLevel,
+		difficultyState.completedWords,
+		currentScore,
 		gameState.board.length,
 		CATCH_LINE_POSITION
 	);
