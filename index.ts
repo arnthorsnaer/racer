@@ -90,10 +90,25 @@ let typedProgress: string = ""; // Track what's been typed successfully
 let lastFeedback: string = ""; // Track feedback from last key press
 const board: (BoardItem | undefined)[] = new Array(19);
 
+// Performance tracking
+let errorCount: number = 0; // Track wrong key presses
+let missedLetters: number = 0; // Track letters that should have been caught but weren't
+
 // Auto-progress game every half second (faster!)
 const gameInterval = setInterval(() => {
 	// Generate new letter
 	const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
+
+	// Check if we're about to lose a needed letter
+	const poppedItem = board[board.length - 1];
+	if (poppedItem !== undefined) {
+		const fullTarget = levels[0].target;
+		const nextExpectedChar = fullTarget[typedProgress.length];
+		// If the popped letter was the next expected character and wasn't caught, count it as missed
+		if (poppedItem.generated === nextExpectedChar && !poppedItem.success) {
+			missedLetters++;
+		}
+	}
 
 	board.unshift({ generated: generatedChar, success: false });
 	board.pop();
@@ -182,6 +197,27 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 				console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
 				console.log(`\n${colors.bright}${colors.brightMagenta}🎉 CONGRATULATIONS! You completed the word: ${colors.brightYellow}${fullTarget}${colors.reset}\n`);
 
+				// Display performance stats
+				const isPerfect = errorCount === 0 && missedLetters === 0;
+
+				console.log(`${colors.bright}${colors.brightCyan}=== PERFORMANCE STATS ===${colors.reset}`);
+
+				if (isPerfect) {
+					console.log(`${colors.bright}${colors.brightGreen}★ PERFECT SCORE! ★${colors.reset}`);
+					console.log(`${colors.brightGreen}No errors and caught every letter on first try!${colors.reset}\n`);
+				} else {
+					console.log(`${colors.brightYellow}Errors (wrong keys pressed): ${colors.brightRed}${errorCount}${colors.reset}`);
+					console.log(`${colors.brightYellow}Missed letters: ${colors.brightRed}${missedLetters}${colors.reset}\n`);
+
+					if (errorCount === 0 && missedLetters > 0) {
+						console.log(`${colors.cyan}Great accuracy! Try to catch letters faster next time.${colors.reset}\n`);
+					} else if (errorCount > 0 && missedLetters === 0) {
+						console.log(`${colors.cyan}Perfect efficiency! Work on reducing errors.${colors.reset}\n`);
+					} else {
+						console.log(`${colors.cyan}Keep practicing to achieve a perfect score!${colors.reset}\n`);
+					}
+				}
+
 				// Play victory sound
 				playGameSound('victory');
 
@@ -190,10 +226,12 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 			}
 		} else if (pickedChar === letterAtSelection) {
 			// Letter matches but it's not the next expected character
+			errorCount++;
 			lastFeedback = `${colors.brightRed}✗ Wrong letter! Need '${nextExpectedChar}', got '${letterAtSelection}'${colors.reset}`;
 			playGameSound('error');
 		} else {
 			// Pressed key doesn't match the letter at selection
+			errorCount++;
 			lastFeedback = `${colors.brightRed}✗ Missed! Pressed '${pickedChar}' but selection shows '${letterAtSelection}'${colors.reset}`;
 			playGameSound('error');
 		}
