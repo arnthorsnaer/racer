@@ -46,14 +46,18 @@ const mix = (splitWord: string[], alphabet: string[]): string[] => {
 	selection = selection.concat(splitWord);
 	selection = selection.concat(splitWord);
 
-	const numberOfZeroesNeeded = selection.length;
-	const zeroes = new Array(numberOfZeroesNeeded + 1).fill(' ');
+	// Reduce spaces to minimize gaps between characters
+	const numberOfSpaces = Math.floor(selection.length / 3);
+	const spaces = new Array(numberOfSpaces).fill(' ');
 
-	return selection.concat(zeroes);
+	return selection.concat(spaces);
 };
 
 // Make `process.stdin` begin emitting "keypress" events
 keypress(process.stdin);
+
+// Set encoding to UTF-8 to properly handle accented characters
+process.stdin.setEncoding('utf8');
 
 const splitWord = split(levels[0].target);
 const bagOfChars = mix(splitWord, alphabet);
