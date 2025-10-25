@@ -32,6 +32,12 @@ let targetLeft = levels[0].target;
 const board = new Array(19);
 
 process.stdin.on('keypress', (ch, key) => {
+	// Handle Ctrl+C to quit
+	if (key && key.ctrl && key.name === 'c') {
+		console.log('\n\nExiting game...\n');
+		process.exit(0);
+	}
+
 	// Check if i pressed a key
 	let pickedChar = "";
 
