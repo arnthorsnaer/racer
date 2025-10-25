@@ -1,5 +1,16 @@
 import keypress from 'keypress';
 import levels from './levels.ts';
+import playSound from 'play-sound';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Initialize sound player
+const player = playSound({});
+let soundEnabled = true;
 
 // ANSI Color codes for terminal styling
 const colors = {
@@ -32,6 +43,18 @@ interface Key {
 }
 
 const alphabet: string[] = ["a","á","b","d","ð","e","é","f","g","h","i","í","j","k","l","m","n","o","ó","p","r","s","t","u","ú","v","x","y","ý","þ","æ","ö"];
+
+// Sound helper functions
+const playGameSound = (soundName: string) => {
+	if (!soundEnabled) return;
+
+	const soundPath = path.join(__dirname, 'sounds', `${soundName}.wav`);
+	player.play(soundPath, (err: Error) => {
+		if (err && err.message !== 'kill SIGTERM') {
+			// Silently ignore errors (sound is optional)
+		}
+	});
+};
 
 // Accepts a target string, returns an array of its constituents
 const split = (word: string): string[] => {
@@ -75,6 +98,9 @@ const gameInterval = setInterval(() => {
 	board.unshift({ generated: generatedChar, success: false });
 	board.pop();
 
+	// Play tick sound for new letter
+	playGameSound('tick');
+
 	// Render
 	console.clear();
 	console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
@@ -111,6 +137,15 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 		process.exit(0);
 	}
 
+	// Handle F1 key to toggle mute
+	if (key && key.name === 'f1') {
+		soundEnabled = !soundEnabled;
+		lastFeedback = soundEnabled
+			? `${colors.brightCyan}🔊 Sound enabled${colors.reset}`
+			: `${colors.brightCyan}🔇 Sound muted${colors.reset}`;
+		return;
+	}
+
 	// Only process if we have a valid character
 	// Prefer 'ch' for actual character input, especially for accented characters
 	if (!ch || ch.length === 0) {
@@ -137,20 +172,30 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 			typedProgress += letterAtSelection;
 			lastFeedback = `${colors.brightGreen}✓ Caught '${letterAtSelection}'! Great!${colors.reset}`;
 
+			// Play success sound
+			playGameSound('success');
+
 			// Check if word is complete
 			if (typedProgress === fullTarget) {
 				clearInterval(gameInterval);
 				console.clear();
 				console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
 				console.log(`\n${colors.bright}${colors.brightMagenta}🎉 CONGRATULATIONS! You completed the word: ${colors.brightYellow}${fullTarget}${colors.reset}\n`);
-				process.exit(0);
+
+				// Play victory sound
+				playGameSound('victory');
+
+				// Wait a bit before exiting so victory sound can play
+				setTimeout(() => process.exit(0), 1000);
 			}
 		} else if (pickedChar === letterAtSelection) {
 			// Letter matches but it's not the next expected character
 			lastFeedback = `${colors.brightRed}✗ Wrong letter! Need '${nextExpectedChar}', got '${letterAtSelection}'${colors.reset}`;
+			playGameSound('error');
 		} else {
 			// Pressed key doesn't match the letter at selection
 			lastFeedback = `${colors.brightRed}✗ Missed! Pressed '${pickedChar}' but selection shows '${letterAtSelection}'${colors.reset}`;
+			playGameSound('error');
 		}
 	} else {
 		lastFeedback = `${colors.red}✗ No letter at selection line!${colors.reset}`;
@@ -164,6 +209,7 @@ console.log(`${colors.bright}Target word: ${colors.brightYellow}${targetLeft}${c
 console.log(`\n${colors.cyan}Controls:${colors.reset}`);
 console.log(`  ${colors.green}- Letters appear automatically every half second${colors.reset}`);
 console.log(`  ${colors.green}- Press letter keys to select them${colors.reset}`);
+console.log(`  ${colors.green}- Press F1 to toggle sound on/off${colors.reset}`);
 console.log(`  ${colors.green}- Press Ctrl+C to quit${colors.reset}\n`);
 console.log(`${colors.magenta}--- Board ---${colors.reset}`);
 for (let i = 0; i < board.length; i++) {
