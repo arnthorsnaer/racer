@@ -1,13 +1,9 @@
 /**
- * Example test file demonstrating testability improvements
+ * Tests for game-logic module
  * These are pure function tests - NO MOCKS NEEDED!
- *
- * To run these tests, install a test runner like Vitest or Jest:
- *   npm install --save-dev vitest
- *   npx vitest
  */
 
-import { describe, it, expect } from 'vitest'; // or 'jest' or 'bun:test'
+import { describe, it, expect } from 'vitest';
 import {
 	createInitialGameState,
 	processKeypress,
@@ -107,11 +103,11 @@ describe('game-logic (pure functions)', () => {
 	});
 });
 
-// Example: Testing with mocked adapters (integration-style test)
+// Testing with mocked adapters (integration-style test)
 describe('adapters integration', () => {
-	it('should allow testing with mock sound adapter', () => {
-		// Import the mock adapter
-		const { createMockSoundAdapter } = require('../../adapters/sound-adapter.js');
+	it('should allow testing with mock sound adapter', async () => {
+		// Dynamic import the mock adapter
+		const { createMockSoundAdapter } = await import('../../adapters/sound-adapter.js');
 		const mockSound = createMockSoundAdapter();
 
 		// Use it
