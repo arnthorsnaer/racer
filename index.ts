@@ -126,35 +126,34 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 	const fullTarget = levels[0].target;
 	const nextExpectedChar = fullTarget[typedProgress.length];
 
-		// Check if there's a letter at the selection line (position 4)
-		if (board[4] !== undefined && board[4].generated) {
-			const letterAtSelection = board[4].generated;
+	// Check if there's a letter at the selection line (position 4)
+	if (board[4] !== undefined && board[4].generated) {
+		const letterAtSelection = board[4].generated;
 
-			// Check if pressed key matches the letter at selection AND it's the next expected character
-			if (pickedChar === letterAtSelection && letterAtSelection === nextExpectedChar) {
-				// Success! Caught the right letter
-				board[4].success = true;
-				typedProgress += letterAtSelection;
-				lastFeedback = `${colors.brightGreen}✓ Caught '${letterAtSelection}'! Great!${colors.reset}`;
+		// Check if pressed key matches the letter at selection AND it's the next expected character
+		if (pickedChar === letterAtSelection && letterAtSelection === nextExpectedChar) {
+			// Success! Caught the right letter
+			board[4].success = true;
+			typedProgress += letterAtSelection;
+			lastFeedback = `${colors.brightGreen}✓ Caught '${letterAtSelection}'! Great!${colors.reset}`;
 
-				// Check if word is complete
-				if (typedProgress === fullTarget) {
-					clearInterval(gameInterval);
-					console.clear();
-					console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
-					console.log(`\n${colors.bright}${colors.brightMagenta}🎉 CONGRATULATIONS! You completed the word: ${colors.brightYellow}${fullTarget}${colors.reset}\n`);
-					process.exit(0);
-				}
-			} else if (pickedChar === letterAtSelection) {
-				// Letter matches but it's not the next expected character
-				lastFeedback = `${colors.brightRed}✗ Wrong letter! Need '${nextExpectedChar}', got '${letterAtSelection}'${colors.reset}`;
-			} else {
-				// Pressed key doesn't match the letter at selection
-				lastFeedback = `${colors.brightRed}✗ Missed! Pressed '${pickedChar}' but selection shows '${letterAtSelection}'${colors.reset}`;
+			// Check if word is complete
+			if (typedProgress === fullTarget) {
+				clearInterval(gameInterval);
+				console.clear();
+				console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
+				console.log(`\n${colors.bright}${colors.brightMagenta}🎉 CONGRATULATIONS! You completed the word: ${colors.brightYellow}${fullTarget}${colors.reset}\n`);
+				process.exit(0);
 			}
+		} else if (pickedChar === letterAtSelection) {
+			// Letter matches but it's not the next expected character
+			lastFeedback = `${colors.brightRed}✗ Wrong letter! Need '${nextExpectedChar}', got '${letterAtSelection}'${colors.reset}`;
 		} else {
-			lastFeedback = `${colors.red}✗ No letter at selection line!${colors.reset}`;
+			// Pressed key doesn't match the letter at selection
+			lastFeedback = `${colors.brightRed}✗ Missed! Pressed '${pickedChar}' but selection shows '${letterAtSelection}'${colors.reset}`;
 		}
+	} else {
+		lastFeedback = `${colors.red}✗ No letter at selection line!${colors.reset}`;
 	}
 });
 
