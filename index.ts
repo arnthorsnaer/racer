@@ -82,27 +82,51 @@ keypress(process.stdin);
 // Set encoding to UTF-8 to properly handle accented characters
 process.stdin.setEncoding('utf8');
 
-const splitWord = split(levels[0].target);
-const bagOfChars = mix(splitWord, alphabet);
+// Track current level
+let currentLevelIndex: number = 0;
 
-let targetLeft: string = levels[0].target;
+let splitWord!: string[];
+let bagOfChars!: string[];
+let targetLeft!: string;
 let typedProgress: string = ""; // Track what's been typed successfully
 let lastFeedback: string = ""; // Track feedback from last key press
-const board: (BoardItem | undefined)[] = new Array(19);
+let board!: (BoardItem | undefined)[];
 
 // Performance tracking
 let errorCount: number = 0; // Track wrong key presses
 let missedLetters: number = 0; // Track letters that should have been caught but weren't
+let gameInterval: NodeJS.Timeout | null = null;
+let isWaitingForLevelChoice: boolean = false;
 
-// Auto-progress game every half second (faster!)
-const gameInterval = setInterval(() => {
+// Function to initialize game state for a level
+const initializeLevel = (levelIndex: number) => {
+	currentLevelIndex = levelIndex;
+	splitWord = split(levels[currentLevelIndex].target);
+	bagOfChars = mix(splitWord, alphabet);
+	targetLeft = levels[currentLevelIndex].target;
+	typedProgress = "";
+	lastFeedback = "";
+	board = new Array(19);
+	errorCount = 0;
+	missedLetters = 0;
+	isWaitingForLevelChoice = false;
+};
+
+// Function to start the game loop
+const startGameLoop = () => {
+	if (gameInterval) {
+		clearInterval(gameInterval);
+	}
+
+	// Auto-progress game every half second (faster!)
+	gameInterval = setInterval(() => {
 	// Generate new letter
 	const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
 
 	// Check if we're about to lose a needed letter
 	const poppedItem = board[board.length - 1];
 	if (poppedItem !== undefined) {
-		const fullTarget = levels[0].target;
+		const fullTarget = levels[currentLevelIndex].target;
 		const nextExpectedChar = fullTarget[typedProgress.length];
 		// If the popped letter was the next expected character and wasn't caught, count it as missed
 		if (poppedItem.generated === nextExpectedChar && !poppedItem.success) {
@@ -134,7 +158,7 @@ const gameInterval = setInterval(() => {
 	}
 
 	// Show progress with typed part and remaining part
-	const fullTarget = levels[0].target;
+	const fullTarget = levels[currentLevelIndex].target;
 	const remaining = fullTarget.substring(typedProgress.length);
 	console.log(`\n${colors.bright}Framvinda: ${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
 
@@ -142,14 +166,42 @@ const gameInterval = setInterval(() => {
 	if (lastFeedback) {
 		console.log(lastFeedback);
 	}
-}, 500);
+	}, 500);
+};
 
 process.stdin.on('keypress', (ch: string, key: Key) => {
 	// Handle Ctrl+C to quit
 	if (key && key.ctrl && key.name === 'c') {
-		clearInterval(gameInterval);
+		if (gameInterval) clearInterval(gameInterval);
 		console.log('\n\nHætti í leik...\n');
 		process.exit(0);
+	}
+
+	// If waiting for level choice, handle y/n input
+	if (isWaitingForLevelChoice) {
+		if (ch === 'y' || ch === 'Y') {
+			// Check if there's a next level
+			if (currentLevelIndex + 1 < levels.length) {
+				initializeLevel(currentLevelIndex + 1);
+				console.clear();
+				console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
+				console.log(`${colors.bright}Stig ${currentLevelIndex + 1}/${levels.length}${colors.reset}`);
+				console.log(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}\n`);
+				console.log(`${colors.brightGreen}Leikur byrjar...${colors.reset}\n`);
+				startGameLoop();
+			} else {
+				// All levels completed!
+				console.clear();
+				console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
+				console.log(`\n${colors.bright}${colors.brightMagenta}🎊 TIL HAMINGJU! 🎊${colors.reset}`);
+				console.log(`${colors.brightGreen}Þú hefur klárað öll ${levels.length} stigin!${colors.reset}\n`);
+				setTimeout(() => process.exit(0), 2000);
+			}
+		} else if (ch === 'n' || ch === 'N') {
+			console.log(`\n${colors.brightCyan}Takk fyrir að spila!${colors.reset}\n`);
+			setTimeout(() => process.exit(0), 1000);
+		}
+		return;
 	}
 
 	// Handle F1 key to toggle mute
@@ -173,7 +225,7 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 	}
 
 	const pickedChar = ch; // Use the actual character typed
-	const fullTarget = levels[0].target;
+	const fullTarget = levels[currentLevelIndex].target;
 	const nextExpectedChar = fullTarget[typedProgress.length];
 
 	// Check if there's a letter at the selection line (position 4)
@@ -192,10 +244,11 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 
 			// Check if word is complete
 			if (typedProgress === fullTarget) {
-				clearInterval(gameInterval);
+				if (gameInterval) clearInterval(gameInterval);
 				console.clear();
 				console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
 				console.log(`\n${colors.bright}${colors.brightMagenta}🎉 TIL HAMINGJU! Þú kláraðir orðið: ${colors.brightYellow}${fullTarget}${colors.reset}\n`);
+				console.log(`${colors.bright}Stig ${currentLevelIndex + 1}/${levels.length} lokið!${colors.reset}\n`);
 
 				// Display performance stats
 				const isPerfect = errorCount === 0 && missedLetters === 0;
@@ -221,8 +274,15 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 				// Play victory sound
 				playGameSound('victory');
 
-				// Wait a bit before exiting so victory sound can play
-				setTimeout(() => process.exit(0), 1000);
+				// Ask if user wants to continue to next level
+				if (currentLevelIndex + 1 < levels.length) {
+					console.log(`${colors.bright}${colors.brightYellow}Viltu halda áfram í næsta stig? (y/n)${colors.reset}`);
+					isWaitingForLevelChoice = true;
+				} else {
+					// Last level completed
+					console.log(`${colors.bright}${colors.brightMagenta}🎊 Þú hefur klárað öll stigin! 🎊${colors.reset}\n`);
+					setTimeout(() => process.exit(0), 2000);
+				}
 			}
 		} else if (pickedChar === letterAtSelection) {
 			// Letter matches but it's not the next expected character
@@ -240,9 +300,13 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 	}
 });
 
+// Initialize the first level and start the game
+initializeLevel(0);
+
 // Initial display
 console.clear();
-console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
+console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
+console.log(`${colors.bright}Stig 1/${levels.length}${colors.reset}`);
 console.log(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}`);
 console.log(`\n${colors.cyan}Stjórnun:${colors.reset}`);
 console.log(`  ${colors.green}- Stafir birtast sjálfkrafa á hálfs sekúndu fresti${colors.reset}`);
@@ -263,3 +327,6 @@ if (process.stdin.isTTY) {
 	process.stdin.setRawMode(true);
 }
 process.stdin.resume();
+
+// Start the game loop
+startGameLoop();

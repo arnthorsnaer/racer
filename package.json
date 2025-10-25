@@ -6,7 +6,8 @@
   "main": "index.ts",
   "scripts": {
     "start": "bun run index.ts",
-    "dev": "bun --watch index.ts"
+    "dev": "bun --watch index.ts",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@types/play-sound": "^1.1.2",
@@ -14,6 +15,7 @@
     "play-sound": "^1.1.6"
   },
   "devDependencies": {
+    "@types/keypress": "^2.0.30",
     "@types/node": "^20.10.0",
     "bun-types": "^1.0.0",
     "tsx": "^4.20.6"
