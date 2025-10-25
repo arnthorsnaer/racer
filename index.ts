@@ -58,7 +58,7 @@ const input = createInputAdapter();
 
 // Game configuration
 const FRAME_WIDTH = 50;
-const GAME_TICK_INTERVAL = 400; // ms
+const GAME_TICK_INTERVAL = 600; // ms
 
 // Initialize word pool and adaptive difficulty
 const singleWordLevels = filterSingleWords(words);
@@ -170,9 +170,9 @@ const handleKeypress = (ch: string, key: Key): void => {
 			const lines = [
 				`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`,
 				'',
-				`${colors.electricBlue}Stig ${currentLevel} (${currentTarget.length}-stafa orð)${colors.reset}`,
+				`${colors.electricBlue}Borð ${currentLevel} (${currentTarget.length}-stafa orð)${colors.reset}`,
 				`${colors.sunsetOrange}Næsta orð: ${currentTarget}${colors.reset}`,
-				`${colors.limeGreen}Orð kláruð: ${difficultyState.completedWords}${colors.reset}  ${colors.cosmicPurple}Skor: ${currentScore.toFixed(1)}${colors.reset}`,
+				`${colors.limeGreen}Orð kláruð: ${difficultyState.completedWords}${colors.reset}  ${colors.cosmicPurple}Stig: ${currentScore.toFixed(1)}${colors.reset}`,
 				'',
 				`${colors.bright}${progressionMessage}${colors.reset}`,
 				'',
