@@ -202,7 +202,7 @@ const levels: Level[] = [
 	},
 	{
 		level: 50,
-		target: "vetrtur"
+		target: "flugvél"
 	},
 	{
 		level: 51,
@@ -210,7 +210,7 @@ const levels: Level[] = [
 	},
 	{
 		level: 52,
-		target: "bíbílar"
+		target: "bílar"
 	},
 	{
 		level: 53,
