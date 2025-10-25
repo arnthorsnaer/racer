@@ -1,338 +1,128 @@
-import keypress from 'keypress';
-import levels from './levels.ts';
-import playSound from 'play-sound';
-import path from 'path';
-import { fileURLToPath } from 'url';
+/**
+ * Imperative Shell - Entry point
+ * Orchestrates side effects and wires together pure core logic
+ */
 
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import levels from './levels.js';
+import { colors } from './src/presentation/theme.js';
+import { alphabet } from './src/presentation/theme.js';
+import {
+	renderWithFrame,
+	buildGameScreen,
+	buildWelcomeScreen,
+	buildCompletionScreen,
+	buildAllCompleteScreen,
+	buildNextLevelScreen,
+	buildGoodbyeScreen,
+} from './src/presentation/formatters.js';
+import {
+	createShuffledLevelIndices,
+	getActualLevel,
+	hasNextLevel,
+	getNextLevelIndex,
+} from './src/core/level-progression.js';
+import {
+	generateBagOfChars,
+} from './src/core/word-generation.js';
+import {
+	createInitialGameState,
+	updateBoardWithNewChar,
+	processKeypress,
+	getTickSound,
+	CATCH_LINE_POSITION,
+	type GameState,
+} from './src/core/game-logic.js';
+import {
+	calculateStats,
+	generateFeedback,
+} from './src/core/score-calculator.js';
+import { createSoundAdapter } from './src/adapters/sound-adapter.js';
+import { createTerminalAdapter } from './src/adapters/terminal-adapter.js';
+import { createInputAdapter, type Key } from './src/adapters/input-adapter.js';
 
-// Initialize sound player
-const player = playSound({});
-let soundEnabled = true;
+// Initialize adapters (side effects)
+const sound = createSoundAdapter();
+const terminal = createTerminalAdapter();
+const input = createInputAdapter();
 
-// ANSI Color codes for terminal styling
-// Theme: "Arcade Neon" - Inspired by Synthwave/Dracula CLI themes
-const colors = {
-	reset: '\x1b[0m',
-	bright: '\x1b[1m',
-	dim: '\x1b[2m',
+// Game configuration
+const FRAME_WIDTH = 50;
+const GAME_TICK_INTERVAL = 400; // ms
 
-	// Raw ANSI colors
-	red: '\x1b[31m',
-	green: '\x1b[32m',
-	yellow: '\x1b[33m',
-	blue: '\x1b[34m',
-	magenta: '\x1b[35m',
-	cyan: '\x1b[36m',
-	brightRed: '\x1b[91m',
-	brightGreen: '\x1b[92m',
-	brightYellow: '\x1b[93m',
-	brightBlue: '\x1b[94m',
-	brightMagenta: '\x1b[95m',
-	brightCyan: '\x1b[96m',
-
-	// Semantic theme colors (Arcade Neon palette)
-	neonPink: '\x1b[95m',        // Bright Magenta - Headers, celebration
-	electricCyan: '\x1b[96m',    // Bright Cyan - Success, progress typed
-	limeGreen: '\x1b[92m',       // Bright Green - Positive feedback
-	sunsetOrange: '\x1b[93m',    // Bright Yellow - Progress remaining, attention
-	hotPink: '\x1b[91m',         // Bright Red - Errors
-	deepPurple: '\x1b[35m',      // Magenta - Subtle accents
-	electricBlue: '\x1b[94m',    // Bright Blue - Frame, structure
-	arcadeGreen: '\x1b[32m',     // Green - Info text
-	neonCyan: '\x1b[36m'         // Cyan - Stream letters
-} as const;
-
-// Frame characters for Tetris-style border
-const frame = {
-	topLeft: '╔',
-	topRight: '╗',
-	bottomLeft: '╚',
-	bottomRight: '╝',
-	horizontal: '═',
-	vertical: '║'
-} as const;
-
-// Helper function to get terminal dimensions and calculate centering
-const getCenteringInfo = (contentWidth: number, contentHeight: number) => {
-	const termWidth = process.stdout.columns || 80;
-	const termHeight = process.stdout.rows || 24;
-
-	const leftPadding = Math.max(0, Math.floor((termWidth - contentWidth) / 2));
-	const topPadding = Math.max(0, Math.floor((termHeight - contentHeight) / 2));
-
-	return { leftPadding, topPadding, termWidth, termHeight };
-};
-
-// Helper function to create a framed line
-const createFramedLine = (content: string, width: number, leftPadding: number): string => {
-	const padding = ' '.repeat(leftPadding);
-	// Strip ANSI codes to measure actual content length
-	const strippedContent = content.replace(/\x1b\[[0-9;]*m/g, '');
-	const contentPadding = ' '.repeat(Math.max(0, width - strippedContent.length - 2));
-	return `${padding}${colors.deepPurple}${frame.vertical}${colors.reset} ${content}${contentPadding}${colors.deepPurple}${frame.vertical}${colors.reset}`;
-};
-
-// Helper function to create horizontal border
-const createHorizontalBorder = (width: number, leftPadding: number, isTop: boolean): string => {
-	const padding = ' '.repeat(leftPadding);
-	const leftChar = isTop ? frame.topLeft : frame.bottomLeft;
-	const rightChar = isTop ? frame.topRight : frame.bottomRight;
-	const line = frame.horizontal.repeat(width);
-	return `${padding}${colors.deepPurple}${leftChar}${line}${rightChar}${colors.reset}`;
-};
-
-interface BoardItem {
-	generated: string;
-	success: boolean;
-}
-
-interface Key {
-	name: string;
-	ctrl?: boolean;
-	meta?: boolean;
-	shift?: boolean;
-}
-
-const alphabet: string[] = ["a","á","b","d","ð","e","é","f","g","h","i","í","j","k","l","m","n","o","ó","p","r","s","t","u","ú","v","x","y","ý","þ","æ","ö"];
-
-// Sound helper functions
-const playGameSound = (soundName: string) => {
-	if (!soundEnabled) return;
-
-	const soundPath = path.join(__dirname, 'sounds', `${soundName}.wav`);
-	player.play(soundPath, (err: Error) => {
-		if (err && err.message !== 'kill SIGTERM') {
-			// Silently ignore errors (sound is optional)
-		}
-	});
-};
-
-// Accepts a target string, returns an array of its constituents
-const split = (word: string): string[] => {
-	const parts = word.split(' ');
-	return parts.length === 1 ? word.split('') : parts;
-};
-
-// Take in all the parts + some spaces and mix them together
-const mix = (splitWord: string[], alphabet: string[]): string[] => {
-	let selection = splitWord.concat(alphabet);
-	selection = selection.concat(splitWord);
-	selection = selection.concat(splitWord);
-	selection = selection.concat(splitWord);
-
-	// Reduce spaces to minimize gaps between characters
-	const numberOfSpaces = Math.floor(selection.length / 3);
-	const spaces = new Array(numberOfSpaces).fill(' ');
-
-	return selection.concat(spaces);
-};
-
-// FR-001 & FR-002: Generate a smart bag of characters based on current progress
-// Increases probability of next required letter and eliminates irrelevant letters
-const generateBagOfChars = (typedProgress: string, fullTarget: string): string[] => {
-	// Get the remaining part of the target word
-	const remaining = fullTarget.substring(typedProgress.length);
-
-	if (remaining.length === 0) {
-		return [' ']; // No more letters needed
-	}
-
-	// Get the next required letter (the one we need RIGHT NOW)
-	const nextLetter = remaining[0].toLowerCase();
-
-	// Get all unique letters still needed (including duplicates in remaining)
-	const remainingLetters = remaining.toLowerCase().split('');
-
-	let selection: string[] = [];
-
-	// FR-001: Add the NEXT required letter many times (10x) for high probability
-	for (let i = 0; i < 10; i++) {
-		selection.push(nextLetter);
-	}
-
-	// FR-002: Only add letters that are still needed in the remaining part
-	// Add each remaining letter 2 times (but not the next letter again since it's already added 10x)
-	const uniqueRemaining = new Set(remainingLetters);
-	uniqueRemaining.forEach(letter => {
-		if (letter !== nextLetter && letter !== ' ') {
-			selection.push(letter);
-			selection.push(letter);
-		}
-	});
-
-	// Add some spaces to create gaps
-	const numberOfSpaces = Math.floor(selection.length / 4);
-	const spaces = new Array(numberOfSpaces).fill(' ');
-
-	return selection.concat(spaces);
-};
-
-// FR-003: Fisher-Yates shuffle algorithm for randomizing level order
-const shuffleArray = <T>(array: T[]): T[] => {
-	const shuffled = [...array];
-	for (let i = shuffled.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-	}
-	return shuffled;
-};
-
-// Make `process.stdin` begin emitting "keypress" events
-keypress(process.stdin);
-
-// Set encoding to UTF-8 to properly handle accented characters
-process.stdin.setEncoding('utf8');
-
-// FR-003: Create a randomized order of level indices
-const shuffledLevelIndices: number[] = shuffleArray(levels.map((_, index) => index));
-
-// Track current level (index into shuffledLevelIndices)
-let currentLevelIndex: number = 0;
-
-let splitWord!: string[];
-let bagOfChars!: string[];
-let targetLeft!: string;
-let typedProgress: string = ""; // Track what's been typed successfully
-let lastFeedback: string = ""; // Track feedback from last key press
-let board!: (BoardItem | undefined)[];
-
-// Performance tracking
-let errorCount: number = 0; // Track wrong key presses
-let missedLetters: number = 0; // Track letters that should have been caught but weren't
-let catchCount: number = 0; // Track number of successful catches for sound variation
-let tickCount: number = 0; // Track tick count for alternating tick sound
+// Initialize game state
+const shuffledLevelIndices = createShuffledLevelIndices(levels);
+let currentLevelIndex = 0;
+let gameState: GameState = createInitialGameState();
+let bagOfChars: string[] = [];
+let currentTarget: string = '';
+let lastFeedback: string = '';
 let gameInterval: NodeJS.Timeout | null = null;
-let isWaitingForLevelChoice: boolean = false;
+let isWaitingForLevelChoice = false;
 
-// Function to initialize game state for a level
-const initializeLevel = (levelIndex: number) => {
+/**
+ * Initialize a level - sets up state for a new level
+ */
+const initializeLevel = (levelIndex: number): void => {
 	currentLevelIndex = levelIndex;
-	// FR-003: Use shuffled level order
-	const actualLevelIndex = shuffledLevelIndices[currentLevelIndex];
-	splitWord = split(levels[actualLevelIndex].target);
-	targetLeft = levels[actualLevelIndex].target;
-	typedProgress = "";
-	// FR-001 & FR-002: Generate smart bag based on current progress
-	bagOfChars = generateBagOfChars(typedProgress, targetLeft);
-	lastFeedback = "";
-	board = new Array(16);
-	errorCount = 0;
-	missedLetters = 0;
-	catchCount = 0;
-	tickCount = 0;
+	const level = getActualLevel(shuffledLevelIndices, currentLevelIndex, levels);
+	currentTarget = level.target;
+	gameState = createInitialGameState();
+	bagOfChars = generateBagOfChars(gameState.typedProgress, currentTarget);
+	lastFeedback = '';
 	isWaitingForLevelChoice = false;
 };
 
-// Function to start the game loop
-const startGameLoop = () => {
+/**
+ * Render a screen to the terminal
+ */
+const renderScreen = (lines: string[]): void => {
+	const dimensions = terminal.getDimensions();
+	const output = renderWithFrame(lines, FRAME_WIDTH, dimensions.width, dimensions.height);
+
+	terminal.clear();
+	output.forEach(line => terminal.log(line));
+};
+
+/**
+ * Start the game loop
+ */
+const startGameLoop = (): void => {
 	if (gameInterval) {
 		clearInterval(gameInterval);
 	}
 
-	// Auto-progress game every 400ms (20% faster than before!)
 	gameInterval = setInterval(() => {
-	// Generate new letter
-	const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
+		// Generate new character
+		const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
 
-	// Check if we're about to lose a needed letter
-	const poppedItem = board[board.length - 1];
-	if (poppedItem !== undefined) {
-		// FR-003: Use shuffled level order
-		const actualLevelIndex = shuffledLevelIndices[currentLevelIndex];
-		const fullTarget = levels[actualLevelIndex].target;
-		const nextExpectedChar = fullTarget[typedProgress.length];
-		// If the popped letter was the next expected character and wasn't caught, count it as missed
-		if (poppedItem.generated.toLowerCase() === nextExpectedChar.toLowerCase() && !poppedItem.success) {
-			missedLetters++;
-		}
-	}
+		// Update board with new character
+		gameState = updateBoardWithNewChar(gameState, generatedChar, currentTarget);
 
-	board.unshift({ generated: generatedChar, success: false });
-	board.pop();
+		// Play tick sound
+		const tickSound = getTickSound(gameState.tickCount);
+		sound.play(tickSound);
 
-	// Play alternating tick sound for new letter (tik-tok pattern)
-	tickCount++;
-	const tickSound = (tickCount % 2 === 0) ? 'tick2' : 'tick1';
-	playGameSound(tickSound);
-
-	// Render with frame and centering
-	console.clear();
-
-	// Build content lines first
-	const lines: string[] = [];
-	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
-	lines.push('');
-
-	for (let i = 0; i < board.length; i++) {
-		// Always show the catch character at position 13
-		if (i === 13) {
-			if (board[i] !== undefined) {
-				const marker = board[i]!.success ? `${colors.limeGreen}✓` : `${colors.sunsetOrange}▶`;
-				const letterColor = board[i]!.success ? colors.limeGreen : colors.electricCyan;
-				lines.push(`${marker}${letterColor}${board[i]!.generated}${colors.reset}`);
-			} else {
-				// Show just the catch character even when no letter is there
-				lines.push(`${colors.sunsetOrange}▶${colors.reset}`);
-			}
-		} else if (i < 13) {
-			// Only render positions before the catch line (0-12)
-			if (board[i] !== undefined) {
-				lines.push(`${colors.neonCyan}${board[i]!.generated}${colors.reset}`);
-			} else {
-				lines.push('');
-			}
-		}
-		// Skip positions after the catch line (14-15) to eliminate spacing
-	}
-
-	// Show progress with typed part and remaining part
-	// FR-003: Use shuffled level order
-	const actualLevelIndex = shuffledLevelIndices[currentLevelIndex];
-	const fullTarget = levels[actualLevelIndex].target;
-	const remaining = fullTarget.substring(typedProgress.length);
-	lines.push('');
-	lines.push(`${colors.bright}${colors.electricCyan}[${typedProgress}]${colors.dim}${colors.sunsetOrange}${remaining}${colors.reset}`);
-
-	// Show current performance stats
-	lines.push(`${colors.neonPink}Villur: ${colors.hotPink}${errorCount}${colors.reset}  ${colors.neonPink}Missir: ${colors.hotPink}${missedLetters}${colors.reset}`);
-
-	// Show feedback from last action
-	if (lastFeedback) {
-		lines.push('');
-		lines.push(lastFeedback);
-	}
-
-	// Calculate dimensions and centering
-	const frameWidth = 50; // Fixed width for the frame
-	const contentHeight = lines.length + 2; // +2 for top and bottom borders
-	const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
-
-	// Render top padding (vertical centering)
-	for (let i = 0; i < topPadding; i++) {
-		console.log('');
-	}
-
-	// Render top border
-	console.log(createHorizontalBorder(frameWidth, leftPadding, true));
-
-	// Render content with side borders
-	for (const line of lines) {
-		console.log(createFramedLine(line, frameWidth, leftPadding));
-	}
-
-	// Render bottom border
-	console.log(createHorizontalBorder(frameWidth, leftPadding, false));
-	}, 400);
+		// Render game screen
+		const lines = buildGameScreen(
+			gameState,
+			currentTarget,
+			currentLevelIndex,
+			levels.length,
+			lastFeedback,
+			CATCH_LINE_POSITION
+		);
+		renderScreen(lines);
+	}, GAME_TICK_INTERVAL);
 };
 
-process.stdin.on('keypress', (ch: string, key: Key) => {
+/**
+ * Handle keypress events
+ */
+const handleKeypress = (ch: string, key: Key): void => {
 	// Handle Ctrl+C to quit
 	if (key && key.ctrl && key.name === 'c') {
 		if (gameInterval) clearInterval(gameInterval);
-		console.log('\n\nHætti í leik...\n');
+		terminal.log('\n\nHætti í leik...\n');
 		process.exit(0);
 	}
 
@@ -340,80 +130,23 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 	if (isWaitingForLevelChoice) {
 		if (ch === 'y' || ch === 'Y') {
 			// Check if there's a next level
-			if (currentLevelIndex + 1 < levels.length) {
-				initializeLevel(currentLevelIndex + 1);
-				console.clear();
+			if (hasNextLevel(currentLevelIndex, levels.length)) {
+				initializeLevel(getNextLevelIndex(currentLevelIndex));
 
-				const nextLevelLines: string[] = [];
-				nextLevelLines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
-				nextLevelLines.push('');
-				nextLevelLines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevelIndex + 1}/${levels.length}${colors.reset}`);
-				nextLevelLines.push(`${colors.bright}Markmiðsorð: ${colors.sunsetOrange}${targetLeft}${colors.reset}`);
-				nextLevelLines.push('');
-				nextLevelLines.push(`${colors.limeGreen}Leikur byrjar...${colors.reset}`);
-
-				const frameWidth = 50;
-				const contentHeight = nextLevelLines.length + 2;
-				const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
-
-				for (let i = 0; i < topPadding; i++) {
-					console.log('');
-				}
-
-				console.log(createHorizontalBorder(frameWidth, leftPadding, true));
-				for (const line of nextLevelLines) {
-					console.log(createFramedLine(line, frameWidth, leftPadding));
-				}
-				console.log(createHorizontalBorder(frameWidth, leftPadding, false));
+				const lines = buildNextLevelScreen(currentTarget, currentLevelIndex, levels.length);
+				renderScreen(lines);
 
 				startGameLoop();
 			} else {
 				// All levels completed!
-				console.clear();
-
-				const allCompleteLines: string[] = [];
-				allCompleteLines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
-				allCompleteLines.push('');
-				allCompleteLines.push(`${colors.bright}${colors.neonPink}★ TIL HAMINGJU! ★${colors.reset}`);
-				allCompleteLines.push(`${colors.limeGreen}Þú hefur klárað öll ${levels.length} stigin!${colors.reset}`);
-
-				const frameWidth = 50;
-				const contentHeight = allCompleteLines.length + 2;
-				const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
-
-				for (let i = 0; i < topPadding; i++) {
-					console.log('');
-				}
-
-				console.log(createHorizontalBorder(frameWidth, leftPadding, true));
-				for (const line of allCompleteLines) {
-					console.log(createFramedLine(line, frameWidth, leftPadding));
-				}
-				console.log(createHorizontalBorder(frameWidth, leftPadding, false));
+				const lines = buildAllCompleteScreen(levels.length);
+				renderScreen(lines);
 
 				setTimeout(() => process.exit(0), 2000);
 			}
 		} else if (ch === 'n' || ch === 'N') {
-			console.clear();
-
-			const goodbyeLines: string[] = [];
-			goodbyeLines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
-			goodbyeLines.push('');
-			goodbyeLines.push(`${colors.electricCyan}Takk fyrir að spila!${colors.reset}`);
-
-			const frameWidth = 50;
-			const contentHeight = goodbyeLines.length + 2;
-			const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
-
-			for (let i = 0; i < topPadding; i++) {
-				console.log('');
-			}
-
-			console.log(createHorizontalBorder(frameWidth, leftPadding, true));
-			for (const line of goodbyeLines) {
-				console.log(createFramedLine(line, frameWidth, leftPadding));
-			}
-			console.log(createHorizontalBorder(frameWidth, leftPadding, false));
+			const lines = buildGoodbyeScreen();
+			renderScreen(lines);
 
 			setTimeout(() => process.exit(0), 1000);
 		}
@@ -422,17 +155,16 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 
 	// Handle F1 key to toggle mute
 	if (key && key.name === 'f1') {
-		soundEnabled = !soundEnabled;
-		lastFeedback = soundEnabled
+		const isEnabled = sound.toggleMute();
+		lastFeedback = isEnabled
 			? `${colors.electricCyan}♪ Hljóð á${colors.reset}`
 			: `${colors.deepPurple}♪ Hljóð af${colors.reset}`;
 		return;
 	}
 
 	// Only process if we have a valid character
-	// Prefer 'ch' for actual character input, especially for accented characters
 	if (!ch || ch.length === 0) {
-		return; // Ignore empty character events (like dead keys alone)
+		return;
 	}
 
 	// Skip control characters and special keys
@@ -440,164 +172,78 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 		return;
 	}
 
-	const pickedChar = ch; // Use the actual character typed
-	// FR-003: Use shuffled level order
-	const actualLevelIndex = shuffledLevelIndices[currentLevelIndex];
-	const fullTarget = levels[actualLevelIndex].target;
-	const nextExpectedChar = fullTarget[typedProgress.length];
+	// Process the keypress using pure logic
+	const result = processKeypress(ch, gameState, currentTarget);
 
-	// Check if there's a letter at the selection line (position 13)
-	if (board[13] !== undefined && board[13].generated) {
-		const letterAtSelection = board[13].generated;
+	// Update game state
+	gameState = result.newState;
+	lastFeedback = result.feedbackType === 'success'
+		? `${colors.limeGreen}${result.feedback}${colors.reset}`
+		: `${colors.hotPink}${result.feedback}${colors.reset}`;
 
-		// Check if pressed key matches the letter at selection AND it's the next expected character
-		if (pickedChar.toLowerCase() === letterAtSelection.toLowerCase() && letterAtSelection.toLowerCase() === nextExpectedChar.toLowerCase()) {
-			// Success! Caught the right letter
-			board[13].success = true;
-			typedProgress += letterAtSelection;
-			lastFeedback = `${colors.limeGreen}★ Náðir '${letterAtSelection}'! Frábært!${colors.reset}`;
+	// Play sound if needed
+	if (result.shouldPlaySound) {
+		sound.play(result.shouldPlaySound);
+	}
 
-			// FR-001 & FR-002: Regenerate bag after each successful catch
-			// This updates probabilities for the NEXT letter and removes letters no longer needed
-			bagOfChars = generateBagOfChars(typedProgress, fullTarget);
+	// If successful, regenerate bag for next letter
+	if (result.feedbackType === 'success') {
+		bagOfChars = generateBagOfChars(gameState.typedProgress, currentTarget);
+	}
 
-			// Play success sound with increasing pitch
-			const successSoundIndex = Math.min(catchCount, 29); // Cap at 29 (we have 30 sounds: 0-29)
-			playGameSound(`success${successSoundIndex}`);
-			catchCount++;
+	// Check if level is complete
+	if (result.isLevelComplete) {
+		if (gameInterval) clearInterval(gameInterval);
 
-			// Check if word is complete
-			if (typedProgress === fullTarget) {
-				if (gameInterval) clearInterval(gameInterval);
-				console.clear();
+		// Calculate stats and generate feedback
+		const stats = calculateStats(gameState.errorCount, gameState.missedLetters);
+		const feedback = generateFeedback(stats);
 
-				// Build completion screen
-				const completionLines: string[] = [];
-				completionLines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
-				completionLines.push('');
-				completionLines.push(`${colors.bright}${colors.neonPink}★ TIL HAMINGJU! Þú kláraðir orðið: ${colors.sunsetOrange}${fullTarget}${colors.reset}`);
-				completionLines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevelIndex + 1}/${levels.length} lokið!${colors.reset}`);
-				completionLines.push('');
+		// Build completion screen
+		const lines = buildCompletionScreen(
+			currentTarget,
+			currentLevelIndex,
+			levels.length,
+			stats,
+			feedback,
+			hasNextLevel(currentLevelIndex, levels.length)
+		);
+		renderScreen(lines);
 
-				// Display performance stats
-				const isPerfect = errorCount === 0 && missedLetters === 0;
+		// Play victory sound
+		sound.play('victory');
 
-				completionLines.push(`${colors.bright}${colors.electricCyan}▓▒░ STATTAR ░▒▓${colors.reset}`);
-				completionLines.push('');
-
-				if (isPerfect) {
-					completionLines.push(`${colors.bright}${colors.limeGreen}★ FULLKOMIÐ! ★${colors.reset}`);
-					completionLines.push(`${colors.limeGreen}Engar villur og náðir hverjum staf í fyrstu tilraun!${colors.reset}`);
-				} else {
-					completionLines.push(`${colors.neonPink}Villur (rangar lyklar): ${colors.hotPink}${errorCount}${colors.reset}`);
-					completionLines.push(`${colors.neonPink}Missaðir stafir: ${colors.hotPink}${missedLetters}${colors.reset}`);
-					completionLines.push('');
-
-					if (errorCount === 0 && missedLetters > 0) {
-						completionLines.push(`${colors.electricCyan}Frábær nákvæmni! Reyndu að ná stöfum hraðar næst.${colors.reset}`);
-					} else if (errorCount > 0 && missedLetters === 0) {
-						completionLines.push(`${colors.electricCyan}Fullkomin skilvirkni! Einbeittu þér að því að fækka villum.${colors.reset}`);
-					} else {
-						completionLines.push(`${colors.electricCyan}Haltu áfram að æfa til að ná fullkomnum árangri!${colors.reset}`);
-					}
-				}
-
-				// Play victory sound
-				playGameSound('victory');
-
-				// Ask if user wants to continue to next level
-				if (currentLevelIndex + 1 < levels.length) {
-					completionLines.push('');
-					completionLines.push(`${colors.bright}${colors.sunsetOrange}Viltu halda áfram í næsta stig? (y/n)${colors.reset}`);
-					isWaitingForLevelChoice = true;
-				} else {
-					// Last level completed
-					completionLines.push('');
-					completionLines.push(`${colors.bright}${colors.neonPink}★ Þú hefur klárað öll stigin! ★${colors.reset}`);
-				}
-
-				// Render with frame
-				const frameWidth = 50;
-				const contentHeight = completionLines.length + 2;
-				const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
-
-				for (let i = 0; i < topPadding; i++) {
-					console.log('');
-				}
-
-				console.log(createHorizontalBorder(frameWidth, leftPadding, true));
-				for (const line of completionLines) {
-					console.log(createFramedLine(line, frameWidth, leftPadding));
-				}
-				console.log(createHorizontalBorder(frameWidth, leftPadding, false));
-
-				if (currentLevelIndex + 1 >= levels.length) {
-					setTimeout(() => process.exit(0), 2000);
-				}
-			}
-		} else if (pickedChar.toLowerCase() === letterAtSelection.toLowerCase()) {
-			// Letter matches but it's not the next expected character
-			errorCount++;
-			lastFeedback = `${colors.hotPink}✗ Rangur stafur! Þarft '${nextExpectedChar}', fékk '${letterAtSelection}'${colors.reset}`;
-			playGameSound('error');
+		// Set waiting for choice if there are more levels
+		if (hasNextLevel(currentLevelIndex, levels.length)) {
+			isWaitingForLevelChoice = true;
 		} else {
-			// Pressed key doesn't match the letter at selection
-			errorCount++;
-			lastFeedback = `${colors.hotPink}✗ Missir! Ýttir á '${pickedChar}' en valið sýnir '${letterAtSelection}'${colors.reset}`;
-			playGameSound('error');
+			setTimeout(() => process.exit(0), 2000);
 		}
-	} else {
-		lastFeedback = `${colors.hotPink}✗ Enginn stafur á vallínu!${colors.reset}`;
 	}
-});
+};
 
-// Initialize the first level and start the game
-initializeLevel(0);
+// Main entry point
+const main = (): void => {
+	// Initialize input
+	input.initialize();
+	input.onKeypress(handleKeypress);
 
-// Initial display with frame
-console.clear();
+	// Initialize first level
+	initializeLevel(0);
 
-const initialLines: string[] = [];
-initialLines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
-initialLines.push('');
-initialLines.push(`${colors.bright}${colors.electricBlue}Stig 1/${levels.length}${colors.reset}`);
-initialLines.push(`${colors.bright}Markmiðsorð: ${colors.sunsetOrange}${targetLeft}${colors.reset}`);
-initialLines.push('');
-initialLines.push(`${colors.electricCyan}Stjórnun:${colors.reset}`);
-initialLines.push(`  ${colors.arcadeGreen}▶ Stafir birtast sjálfkrafa á 0.4 sekúndu fresti${colors.reset}`);
-initialLines.push(`  ${colors.arcadeGreen}▶ Ýttu á stafatakka til að velja þá${colors.reset}`);
-initialLines.push(`  ${colors.arcadeGreen}▶ Ýttu á F1 til að kveikja/slökkva á hljóði${colors.reset}`);
-initialLines.push(`  ${colors.arcadeGreen}▶ Ýttu á Ctrl+C til að hætta${colors.reset}`);
-initialLines.push('');
-initialLines.push(`${colors.neonPink}━━━ Borð ━━━${colors.reset}`);
-for (let i = 0; i < board.length; i++) {
-	if (i === 13) {
-		initialLines.push(`${colors.sunsetOrange}▶ (vallína)${colors.reset}`);
-	} else {
-		initialLines.push('');
-	}
-}
-initialLines.push('');
-initialLines.push(`${colors.limeGreen}Leikur byrjar...${colors.reset}`);
+	// Show welcome screen
+	const lines = buildWelcomeScreen(
+		currentTarget,
+		currentLevelIndex,
+		levels.length,
+		gameState.board.length,
+		CATCH_LINE_POSITION
+	);
+	renderScreen(lines);
 
-const frameWidth = 50;
-const contentHeight = initialLines.length + 2;
-const { leftPadding, topPadding } = getCenteringInfo(frameWidth + 2, contentHeight);
+	// Start the game loop
+	startGameLoop();
+};
 
-for (let i = 0; i < topPadding; i++) {
-	console.log('');
-}
-
-console.log(createHorizontalBorder(frameWidth, leftPadding, true));
-for (const line of initialLines) {
-	console.log(createFramedLine(line, frameWidth, leftPadding));
-}
-console.log(createHorizontalBorder(frameWidth, leftPadding, false));
-
-if (process.stdin.isTTY) {
-	process.stdin.setRawMode(true);
-}
-process.stdin.resume();
-
-// Start the game loop
-startGameLoop();
+// Run the game
+main();
