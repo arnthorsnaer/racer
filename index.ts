@@ -111,11 +111,20 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 		process.exit(0);
 	}
 
-	// Check if i pressed a key
-	if (key && key.name !== "enter" && key.name !== "return") {
-		const pickedChar = ch || key.name;
-		const fullTarget = levels[0].target;
-		const nextExpectedChar = fullTarget[typedProgress.length];
+	// Only process if we have a valid character
+	// Prefer 'ch' for actual character input, especially for accented characters
+	if (!ch || ch.length === 0) {
+		return; // Ignore empty character events (like dead keys alone)
+	}
+
+	// Skip control characters and special keys
+	if (key && (key.name === "enter" || key.name === "return" || key.name === "escape")) {
+		return;
+	}
+
+	const pickedChar = ch; // Use the actual character typed
+	const fullTarget = levels[0].target;
+	const nextExpectedChar = fullTarget[typedProgress.length];
 
 		// Check if there's a letter at the selection line (position 4)
 		if (board[4] !== undefined && board[4].generated) {
