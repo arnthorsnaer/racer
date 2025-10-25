@@ -134,11 +134,9 @@ export const buildGameScreen = (
 	// Stats
 	lines.push(formatStats(state.errorCount, state.missedLetters));
 
-	// Feedback
-	if (feedback) {
-		lines.push('');
-		lines.push(feedback);
-	}
+	// Feedback - always reserve space to prevent layout shift
+	lines.push('');
+	lines.push(feedback || '');
 
 	return lines;
 };
