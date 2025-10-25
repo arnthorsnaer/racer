@@ -30,9 +30,15 @@ export const mix = (splitWord: string[], alphabet: string[]): string[] => {
 	return selection.concat(spaces);
 };
 
+// Icelandic alphabet for random noise
+const ICELANDIC_ALPHABET: string[] = [
+	"a", "á", "b", "d", "ð", "e", "é", "f", "g", "h", "i", "í", "j", "k", "l", "m",
+	"n", "o", "ó", "p", "r", "s", "t", "u", "ú", "v", "x", "y", "ý", "þ", "æ", "ö"
+];
+
 /**
  * FR-001 & FR-002: Generate a smart bag of characters based on current progress
- * Increases probability of next required letter and eliminates irrelevant letters
+ * Increases probability of next required letter while adding variance with random letters
  *
  * @param typedProgress - What has been successfully typed so far
  * @param fullTarget - The complete target word/phrase
@@ -54,20 +60,28 @@ export const generateBagOfChars = (typedProgress: string, fullTarget: string): s
 
 	let selection: string[] = [];
 
-	// FR-001: Add the NEXT required letter many times (10x) for high probability
-	for (let i = 0; i < 10; i++) {
+	// FR-001: Add the NEXT required letter (5x) for higher probability but not overwhelming
+	for (let i = 0; i < 5; i++) {
 		selection.push(nextLetter);
 	}
 
 	// FR-002: Only add letters that are still needed in the remaining part
-	// Add each remaining letter 2 times (but not the next letter again since it's already added 10x)
+	// Add each remaining letter 3 times (but not the next letter again since it's already added 5x)
 	const uniqueRemaining = new Set(remainingLetters);
 	uniqueRemaining.forEach(letter => {
 		if (letter !== nextLetter && letter !== ' ') {
 			selection.push(letter);
 			selection.push(letter);
+			selection.push(letter);
 		}
 	});
+
+	// Add random letters from the alphabet for variance (about 20% of current selection size)
+	const randomCount = Math.floor(selection.length * 0.2);
+	for (let i = 0; i < randomCount; i++) {
+		const randomLetter = ICELANDIC_ALPHABET[Math.floor(Math.random() * ICELANDIC_ALPHABET.length)];
+		selection.push(randomLetter);
+	}
 
 	// Add some spaces to create gaps
 	const numberOfSpaces = Math.floor(selection.length / 4);

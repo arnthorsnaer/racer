@@ -11,6 +11,7 @@ export interface DifficultyState {
 	maxWordLength: number;     // Ceiling (can't go above this)
 	completedWords: number;    // Total words completed
 	usedWords: Set<string>;    // Words already used (to avoid repetition)
+	consecutivePerfect: number; // Consecutive perfect completions at current level
 }
 
 export interface ProgressionResult {
@@ -44,33 +45,54 @@ export const shouldStay = (stats: PerformanceStats): boolean => {
 };
 
 /**
+ * Number of consecutive perfect completions required to upgrade
+ */
+export const PERFECT_COMPLETIONS_REQUIRED = 2;
+
+/**
  * Calculate the next word length based on performance
  * Respects min/max bounds and starting length floor
+ * Requires multiple consecutive perfect completions to upgrade
  *
  * @param currentWordLength - Current difficulty word length
  * @param stats - Performance statistics from completed level
  * @param minWordLength - Minimum word length (floor)
  * @param maxWordLength - Maximum word length (ceiling)
- * @returns New word length and progression info
+ * @param consecutivePerfect - Number of consecutive perfect completions
+ * @returns New word length, progression info, and updated consecutive count
  */
 export const calculateNextWordLength = (
 	currentWordLength: number,
 	stats: PerformanceStats,
 	minWordLength: number,
-	maxWordLength: number
-): ProgressionResult => {
-	// UPGRADE: Perfect performance
+	maxWordLength: number,
+	consecutivePerfect: number
+): ProgressionResult & { consecutivePerfect: number } => {
+	// UPGRADE: Perfect performance AND enough consecutive perfects
 	if (shouldUpgrade(stats)) {
-		const newLength = Math.min(currentWordLength + 1, maxWordLength);
-		const isAtMax = newLength === maxWordLength;
+		const newConsecutivePerfect = consecutivePerfect + 1;
 
-		return {
-			newWordLength: newLength,
-			progressionType: 'upgrade',
-			message: isAtMax
-				? '★ Frábært! Þú ert á hámarksstigi!'
-				: `★ Fullkomið! Að færa þig á stig ${newLength - minWordLength + 1}!`,
-		};
+		if (newConsecutivePerfect >= PERFECT_COMPLETIONS_REQUIRED) {
+			const newLength = Math.min(currentWordLength + 1, maxWordLength);
+			const isAtMax = newLength === maxWordLength;
+
+			return {
+				newWordLength: newLength,
+				progressionType: 'upgrade',
+				message: isAtMax
+					? '★ Frábært! Þú ert á hámarksstigi!'
+					: `★ Fullkomið! Að færa þig á stig ${newLength - minWordLength + 1}!`,
+				consecutivePerfect: 0, // Reset counter after upgrade
+			};
+		} else {
+			// Perfect but not enough consecutive perfects yet
+			return {
+				newWordLength: currentWordLength,
+				progressionType: 'stay',
+				message: `★ Fullkomið! (${newConsecutivePerfect}/${PERFECT_COMPLETIONS_REQUIRED} til að fara upp stig)`,
+				consecutivePerfect: newConsecutivePerfect,
+			};
+		}
 	}
 
 	// DOWNGRADE: Both errors and misses
@@ -84,6 +106,7 @@ export const calculateNextWordLength = (
 			message: isAtMin
 				? '○ Reynum aftur á þessum stigi'
 				: `○ Æfum á stigi ${newLength - minWordLength + 1}`,
+			consecutivePerfect: 0, // Reset counter on downgrade
 		};
 	}
 
@@ -92,6 +115,7 @@ export const calculateNextWordLength = (
 		newWordLength: currentWordLength,
 		progressionType: 'stay',
 		message: '◐ Gott! Reynum aftur á sama stigi',
+		consecutivePerfect: 0, // Reset counter if not perfect
 	};
 };
 
@@ -111,6 +135,7 @@ export const createInitialDifficultyState = (
 	maxWordLength: maxLength,
 	completedWords: 0,
 	usedWords: new Set(),
+	consecutivePerfect: 0,
 });
 
 /**
@@ -126,11 +151,12 @@ export const updateDifficultyState = (
 	completedWord: string,
 	stats: PerformanceStats
 ): { newState: DifficultyState; progression: ProgressionResult } => {
-	const progression = calculateNextWordLength(
+	const progressionResult = calculateNextWordLength(
 		state.currentWordLength,
 		stats,
 		state.minWordLength,
-		state.maxWordLength
+		state.maxWordLength,
+		state.consecutivePerfect
 	);
 
 	const newUsedWords = new Set(state.usedWords);
@@ -139,10 +165,15 @@ export const updateDifficultyState = (
 	return {
 		newState: {
 			...state,
-			currentWordLength: progression.newWordLength,
+			currentWordLength: progressionResult.newWordLength,
 			completedWords: state.completedWords + 1,
 			usedWords: newUsedWords,
+			consecutivePerfect: progressionResult.consecutivePerfect,
 		},
-		progression,
+		progression: {
+			newWordLength: progressionResult.newWordLength,
+			progressionType: progressionResult.progressionType,
+			message: progressionResult.message,
+		},
 	};
 };

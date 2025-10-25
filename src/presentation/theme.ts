@@ -31,6 +31,7 @@ export const colors = {
 	sunsetOrange: '\x1b[93m',    // Bright Yellow - Progress remaining, attention
 	hotPink: '\x1b[91m',         // Bright Red - Errors
 	deepPurple: '\x1b[35m',      // Magenta - Subtle accents
+	cosmicPurple: '\x1b[95m',    // Bright Magenta - Score display
 	electricBlue: '\x1b[94m',    // Bright Blue - Frame, structure
 	arcadeGreen: '\x1b[32m',     // Green - Info text
 	neonCyan: '\x1b[36m'         // Cyan - Stream letters
