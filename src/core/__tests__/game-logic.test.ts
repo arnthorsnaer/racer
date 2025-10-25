@@ -82,20 +82,21 @@ describe('game-logic (pure functions)', () => {
 			expect(newState.board[1]?.generated).toBe('a');
 		});
 
-		it('should count missed letters when needed letter is popped', () => {
+		it('should count missed letters when needed letter leaves catch line', () => {
 			const state = createInitialGameState();
-			// Put the needed letter at the end (about to be popped)
-			state.board[15] = { generated: 't', success: false };
+			// Put the needed letter at the CATCH LINE (position 13), not caught
+			state.board[CATCH_LINE_POSITION] = { generated: 't', success: false };
 
 			const newState = updateBoardWithNewChar(state, 'x', 'test');
 
+			// Miss should be counted because 't' was at catch line and is the next expected letter
 			expect(newState.missedLetters).toBe(1);
 		});
 
-		it('should NOT count missed letters when space is popped (target has no spaces)', () => {
+		it('should NOT count missed letters when space is at catch line (target has no spaces)', () => {
 			const state = createInitialGameState();
-			// Put a SPACE at the end (about to be popped) - these are added for visual gaps
-			state.board[15] = { generated: ' ', success: false };
+			// Put a SPACE at the catch line - these are added for visual gaps
+			state.board[CATCH_LINE_POSITION] = { generated: ' ', success: false };
 
 			const newState = updateBoardWithNewChar(state, 'x', 'test');
 
@@ -103,14 +104,25 @@ describe('game-logic (pure functions)', () => {
 			expect(newState.missedLetters).toBe(0);
 		});
 
-		it('should NOT count missed letters when unneeded letter is popped', () => {
+		it('should NOT count missed letters when unneeded letter is at catch line', () => {
 			const state = createInitialGameState();
-			// Put a letter that exists later in the word at position 15
-			state.board[15] = { generated: 's', success: false };
+			// Put a letter that exists later in the word at the catch line
+			state.board[CATCH_LINE_POSITION] = { generated: 's', success: false };
 
 			const newState = updateBoardWithNewChar(state, 'x', 'test');
 
 			// 's' is in the word but not the NEXT expected letter, so shouldn't count as miss
+			expect(newState.missedLetters).toBe(0);
+		});
+
+		it('should NOT count miss for letter that WAS caught at catch line', () => {
+			const state = createInitialGameState();
+			// Put the needed letter at catch line but mark it as successfully caught
+			state.board[CATCH_LINE_POSITION] = { generated: 't', success: true };
+
+			const newState = updateBoardWithNewChar(state, 'x', 'test');
+
+			// Should not count as miss because it was caught (success = true)
 			expect(newState.missedLetters).toBe(0);
 		});
 	});

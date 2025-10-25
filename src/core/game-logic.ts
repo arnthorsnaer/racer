@@ -53,15 +53,17 @@ export const updateBoardWithNewChar = (
 	fullTarget: string
 ): GameState => {
 	const newBoard = [...state.board];
-
-	// Check if we're about to lose a needed letter
-	const poppedItem = newBoard[newBoard.length - 1];
 	let newMissedLetters = state.missedLetters;
 
-	if (poppedItem !== undefined) {
+	// Check if the letter at the catch line is a needed letter that wasn't caught
+	// This check happens BEFORE the board shifts, so we're checking the letter
+	// that's about to leave the catch line position
+	const catchLineItem = newBoard[CATCH_LINE_POSITION];
+
+	if (catchLineItem !== undefined && catchLineItem.generated) {
 		const nextExpectedChar = fullTarget[state.typedProgress.length];
-		// If the popped letter was the next expected character and wasn't caught, count it as missed
-		if (poppedItem.generated.toLowerCase() === nextExpectedChar.toLowerCase() && !poppedItem.success) {
+		// If this letter was the next needed letter and wasn't caught, count as miss
+		if (catchLineItem.generated.toLowerCase() === nextExpectedChar.toLowerCase() && !catchLineItem.success) {
 			newMissedLetters++;
 		}
 	}
