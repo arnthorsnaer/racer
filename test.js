@@ -31,9 +31,36 @@ const bagOfChars = mix(splitWord, alphabet);
 let targetLeft = levels[0].target;
 const board = new Array(19);
 
+// Auto-progress game every second
+const gameInterval = setInterval(() => {
+	// Generate new letter
+	const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
+
+	board.unshift({ generated: generatedChar, success: false });
+	board.pop();
+
+	// Render
+	console.clear();
+	console.log('=== ICELANDIC TYPING RACER ===\n');
+	for (let i = board.length - 1; i >= 0; i--) {
+		if (board[i] !== undefined) {
+			if (i === 4) {
+				console.log(`#${board[i].generated}`);
+			} else {
+				console.log(board[i].generated);
+			}
+		} else {
+			console.log('');
+		}
+	}
+
+	console.log(`\nTarget word : ${targetLeft}`);
+}, 1000);
+
 process.stdin.on('keypress', (ch, key) => {
 	// Handle Ctrl+C to quit
 	if (key && key.ctrl && key.name === 'c') {
+		clearInterval(gameInterval);
 		console.log('\n\nExiting game...\n');
 		process.exit(0);
 	}
@@ -48,28 +75,6 @@ process.stdin.on('keypress', (ch, key) => {
 		// targetLeft = targetLeft.replace(new RegExp(pickedChar, "gi"), '');
 		// bagOfChars = mix(split(targetLeft), alphabet);
 	}
-
-	// Process rest
-	if (key && (key.name === "enter" || key.name === "return")) {
-		// Generate new letter
-		const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
-
-		board.unshift({ generated: generatedChar, success: false });
-		board.pop();
-
-		// Render
-		for (let i = board.length - 1; i >= 0; i--) {
-			if (board[i] !== undefined) {
-				if (i === 4) {
-					console.log(`#${board[i].generated}`);
-				} else {
-					console.log(board[i].generated);
-				}
-			}
-		}
-
-		console.log(`Target word : ${targetLeft}`);
-	}
 });
 
 // Initial display
@@ -77,7 +82,7 @@ console.clear();
 console.log('=== ICELANDIC TYPING RACER ===\n');
 console.log(`Target word: ${targetLeft}`);
 console.log('\nControls:');
-console.log('  - Press ENTER to generate a new letter');
+console.log('  - Letters appear automatically every second');
 console.log('  - Press letter keys to select them');
 console.log('  - Press Ctrl+C to quit\n');
 console.log('--- Board ---');
@@ -88,7 +93,7 @@ for (let i = 0; i < board.length; i++) {
 		console.log('');
 	}
 }
-console.log('\nPress ENTER to start!\n');
+console.log('\nGame starting...\n');
 
 if (process.stdin.isTTY) {
 	process.stdin.setRawMode(true);
