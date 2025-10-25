@@ -62,8 +62,8 @@ function generateWAV(frequency, duration, volume = 0.3) {
     return Buffer.concat([header, samples]);
 }
 
-// Generate ascending tone (success) with pitch offset
-function generateSuccess(pitchOffset = 0) {
+// Generate ascending tone (success) with specified base note frequency
+function generateSuccess(baseFrequency = 261.63) {
     const sampleRate = 44100;
     const duration = 0.15;
     const numSamples = Math.floor(sampleRate * duration);
@@ -88,8 +88,8 @@ function generateSuccess(pitchOffset = 0) {
     for (let i = 0; i < numSamples; i++) {
         const t = i / sampleRate;
         const progress = i / numSamples;
-        // Base frequency increases with each catch: 600Hz -> 1000Hz, plus offset
-        const freq = (600 + pitchOffset) + (progress * 400);
+        // Sweep up from base frequency (creates ascending chirp effect)
+        const freq = baseFrequency + (progress * baseFrequency * 0.5);
         const value = Math.sin(2 * Math.PI * freq * t);
         const envelope = Math.min(1, Math.min(i / (sampleRate * 0.01), (numSamples - i) / (sampleRate * 0.02)));
         const sample = Math.floor(value * 0.3 * envelope * 32767);
@@ -220,12 +220,46 @@ if (!fs.existsSync(soundsDir)) {
 // Generate all sounds
 console.log('Generating sound files...');
 
-// Generate 30 success sounds with increasing pitch (20Hz increments)
+// Chromatic scale starting from C4 (30 semitones)
+// C4, C#4, D4, D#4, E4, F4, F#4, G4, G#4, A4, A#4, B4, C5, etc.
+const chromaticScale = [
+    261.63, // C4
+    277.18, // C#4/Db4
+    293.66, // D4
+    311.13, // D#4/Eb4
+    329.63, // E4
+    349.23, // F4
+    369.99, // F#4/Gb4
+    392.00, // G4
+    415.30, // G#4/Ab4
+    440.00, // A4
+    466.16, // A#4/Bb4
+    493.88, // B4
+    523.25, // C5
+    554.37, // C#5/Db5
+    587.33, // D5
+    622.25, // D#5/Eb5
+    659.25, // E5
+    698.46, // F5
+    739.99, // F#5/Gb5
+    783.99, // G5
+    830.61, // G#5/Ab5
+    880.00, // A5
+    932.33, // A#5/Bb5
+    987.77, // B5
+    1046.50, // C6
+    1108.73, // C#6/Db6
+    1174.66, // D6
+    1244.51, // D#6/Eb6
+    1318.51, // E6
+    1396.91  // F6
+];
+
+// Generate 30 success sounds with chromatic scale
 for (let i = 0; i < 30; i++) {
-    const pitchOffset = i * 20; // Each catch increases pitch by 20Hz
-    fs.writeFileSync(path.join(soundsDir, `success${i}.wav`), generateSuccess(pitchOffset));
+    fs.writeFileSync(path.join(soundsDir, `success${i}.wav`), generateSuccess(chromaticScale[i]));
 }
-console.log('✓ Generated 30 success sounds (success0.wav - success29.wav)');
+console.log('✓ Generated 30 success sounds (success0.wav - success29.wav) using chromatic scale from C4 to F6');
 
 fs.writeFileSync(path.join(soundsDir, 'error.wav'), generateError());
 console.log('✓ Generated error.wav');
