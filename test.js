@@ -1,6 +1,24 @@
 import keypress from 'keypress';
 import levels from './levels.js';
 
+// ANSI Color codes for terminal styling
+const colors = {
+	reset: '\x1b[0m',
+	bright: '\x1b[1m',
+	red: '\x1b[31m',
+	green: '\x1b[32m',
+	yellow: '\x1b[33m',
+	blue: '\x1b[34m',
+	magenta: '\x1b[35m',
+	cyan: '\x1b[36m',
+	brightRed: '\x1b[91m',
+	brightGreen: '\x1b[92m',
+	brightYellow: '\x1b[93m',
+	brightBlue: '\x1b[94m',
+	brightMagenta: '\x1b[95m',
+	brightCyan: '\x1b[96m'
+};
+
 const alphabet = ["a","á","b","d","ð","e","é","f","g","h","i","í","j","k","l","m","n","o","ó","p","r","s","t","u","ú","v","x","y","ý","þ","æ","ö"];
 
 // Accepts a target string, returns an array of its constituents
@@ -33,7 +51,7 @@ let typedProgress = ""; // Track what's been typed successfully
 let lastFeedback = ""; // Track feedback from last key press
 const board = new Array(19);
 
-// Auto-progress game every second
+// Auto-progress game every half second (faster!)
 const gameInterval = setInterval(() => {
 	// Generate new letter
 	const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
@@ -43,14 +61,15 @@ const gameInterval = setInterval(() => {
 
 	// Render
 	console.clear();
-	console.log('=== ICELANDIC TYPING RACER ===\n');
+	console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
 	for (let i = board.length - 1; i >= 0; i--) {
 		if (board[i] !== undefined) {
 			if (i === 4) {
-				const marker = board[i].success ? '✓' : '#';
-				console.log(`${marker}${board[i].generated}`);
+				const marker = board[i].success ? `${colors.brightGreen}✓` : `${colors.brightYellow}#`;
+				const letterColor = board[i].success ? colors.brightGreen : colors.brightMagenta;
+				console.log(`${marker}${letterColor}${board[i].generated}${colors.reset}`);
 			} else {
-				console.log(board[i].generated);
+				console.log(`${colors.cyan}${board[i].generated}${colors.reset}`);
 			}
 		} else {
 			console.log('');
@@ -60,13 +79,13 @@ const gameInterval = setInterval(() => {
 	// Show progress with typed part and remaining part
 	const fullTarget = levels[0].target;
 	const remaining = fullTarget.substring(typedProgress.length);
-	console.log(`\nProgress: [${typedProgress}]${remaining}`);
+	console.log(`\n${colors.bright}Progress: ${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
 
 	// Show feedback from last action
 	if (lastFeedback) {
 		console.log(lastFeedback);
 	}
-}, 1000);
+}, 500);
 
 process.stdin.on('keypress', (ch, key) => {
 	// Handle Ctrl+C to quit
@@ -91,46 +110,46 @@ process.stdin.on('keypress', (ch, key) => {
 				// Success! Caught the right letter
 				board[4].success = true;
 				typedProgress += letterAtSelection;
-				lastFeedback = `✓ Caught '${letterAtSelection}'! Great!`;
+				lastFeedback = `${colors.brightGreen}✓ Caught '${letterAtSelection}'! Great!${colors.reset}`;
 
 				// Check if word is complete
 				if (typedProgress === fullTarget) {
 					clearInterval(gameInterval);
 					console.clear();
-					console.log('=== ICELANDIC TYPING RACER ===\n');
-					console.log(`\n🎉 CONGRATULATIONS! You completed the word: ${fullTarget}\n`);
+					console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
+					console.log(`\n${colors.bright}${colors.brightMagenta}🎉 CONGRATULATIONS! You completed the word: ${colors.brightYellow}${fullTarget}${colors.reset}\n`);
 					process.exit(0);
 				}
 			} else if (pickedChar === letterAtSelection) {
 				// Letter matches but it's not the next expected character
-				lastFeedback = `✗ Wrong letter! Need '${nextExpectedChar}', got '${letterAtSelection}'`;
+				lastFeedback = `${colors.brightRed}✗ Wrong letter! Need '${nextExpectedChar}', got '${letterAtSelection}'${colors.reset}`;
 			} else {
 				// Pressed key doesn't match the letter at selection
-				lastFeedback = `✗ Missed! Pressed '${pickedChar}' but selection shows '${letterAtSelection}'`;
+				lastFeedback = `${colors.brightRed}✗ Missed! Pressed '${pickedChar}' but selection shows '${letterAtSelection}'${colors.reset}`;
 			}
 		} else {
-			lastFeedback = `✗ No letter at selection line!`;
+			lastFeedback = `${colors.red}✗ No letter at selection line!${colors.reset}`;
 		}
 	}
 });
 
 // Initial display
 console.clear();
-console.log('=== ICELANDIC TYPING RACER ===\n');
-console.log(`Target word: ${targetLeft}`);
-console.log('\nControls:');
-console.log('  - Letters appear automatically every second');
-console.log('  - Press letter keys to select them');
-console.log('  - Press Ctrl+C to quit\n');
-console.log('--- Board ---');
+console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
+console.log(`${colors.bright}Target word: ${colors.brightYellow}${targetLeft}${colors.reset}`);
+console.log(`\n${colors.cyan}Controls:${colors.reset}`);
+console.log(`  ${colors.green}- Letters appear automatically every half second${colors.reset}`);
+console.log(`  ${colors.green}- Press letter keys to select them${colors.reset}`);
+console.log(`  ${colors.green}- Press Ctrl+C to quit${colors.reset}\n`);
+console.log(`${colors.magenta}--- Board ---${colors.reset}`);
 for (let i = 0; i < board.length; i++) {
 	if (i === 4) {
-		console.log('# (selection line)');
+		console.log(`${colors.brightYellow}# (selection line)${colors.reset}`);
 	} else {
 		console.log('');
 	}
 }
-console.log('\nGame starting...\n');
+console.log(`\n${colors.brightGreen}Game starting...${colors.reset}\n`);
 
 if (process.stdin.isTTY) {
 	process.stdin.setRawMode(true);
