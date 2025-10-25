@@ -4,7 +4,7 @@ var path = require('path');
 
 var keypress = require('keypress');
 
-var levels =  new require("./levels.js");
+var levels = require("./levels.js");
 var alphabet = ["a","á","b","d","ð","e","é","f","g","h","i","í","j","k","l","m","n","o","ó","p","r","s","t","u","ú","v","x","y","ý","þ","æ","ö"];
 
 //accepts a target string, 
