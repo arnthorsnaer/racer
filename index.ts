@@ -95,6 +95,8 @@ let board!: (BoardItem | undefined)[];
 // Performance tracking
 let errorCount: number = 0; // Track wrong key presses
 let missedLetters: number = 0; // Track letters that should have been caught but weren't
+let catchCount: number = 0; // Track number of successful catches for sound variation
+let tickCount: number = 0; // Track tick count for alternating tick sound
 let gameInterval: NodeJS.Timeout | null = null;
 let isWaitingForLevelChoice: boolean = false;
 
@@ -109,6 +111,8 @@ const initializeLevel = (levelIndex: number) => {
 	board = new Array(19);
 	errorCount = 0;
 	missedLetters = 0;
+	catchCount = 0;
+	tickCount = 0;
 	isWaitingForLevelChoice = false;
 };
 
@@ -129,7 +133,7 @@ const startGameLoop = () => {
 		const fullTarget = levels[currentLevelIndex].target;
 		const nextExpectedChar = fullTarget[typedProgress.length];
 		// If the popped letter was the next expected character and wasn't caught, count it as missed
-		if (poppedItem.generated === nextExpectedChar && !poppedItem.success) {
+		if (poppedItem.generated.toLowerCase() === nextExpectedChar.toLowerCase() && !poppedItem.success) {
 			missedLetters++;
 		}
 	}
@@ -137,8 +141,10 @@ const startGameLoop = () => {
 	board.unshift({ generated: generatedChar, success: false });
 	board.pop();
 
-	// Play tick sound for new letter
-	playGameSound('tick');
+	// Play alternating tick sound for new letter (tik-tok pattern)
+	tickCount++;
+	const tickSound = (tickCount % 2 === 0) ? 'tick2' : 'tick1';
+	playGameSound(tickSound);
 
 	// Render
 	console.clear();
@@ -169,6 +175,9 @@ const startGameLoop = () => {
 	const fullTarget = levels[currentLevelIndex].target;
 	const remaining = fullTarget.substring(typedProgress.length);
 	console.log(`\n${colors.bright}${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
+
+	// Show current performance stats
+	console.log(`${colors.brightYellow}Villur: ${colors.brightRed}${errorCount}${colors.reset}  ${colors.brightYellow}Missir: ${colors.brightRed}${missedLetters}${colors.reset}`);
 
 	// Show feedback from last action
 	if (lastFeedback) {
@@ -241,14 +250,16 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 		const letterAtSelection = board[16].generated;
 
 		// Check if pressed key matches the letter at selection AND it's the next expected character
-		if (pickedChar === letterAtSelection && letterAtSelection === nextExpectedChar) {
+		if (pickedChar.toLowerCase() === letterAtSelection.toLowerCase() && letterAtSelection.toLowerCase() === nextExpectedChar.toLowerCase()) {
 			// Success! Caught the right letter
 			board[16].success = true;
 			typedProgress += letterAtSelection;
 			lastFeedback = `${colors.brightGreen}✓ Náðir '${letterAtSelection}'! Frábært!${colors.reset}`;
 
-			// Play success sound
-			playGameSound('success');
+			// Play success sound with increasing pitch
+			const successSoundIndex = Math.min(catchCount, 29); // Cap at 29 (we have 30 sounds: 0-29)
+			playGameSound(`success${successSoundIndex}`);
+			catchCount++;
 
 			// Check if word is complete
 			if (typedProgress === fullTarget) {
@@ -292,7 +303,7 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 					setTimeout(() => process.exit(0), 2000);
 				}
 			}
-		} else if (pickedChar === letterAtSelection) {
+		} else if (pickedChar.toLowerCase() === letterAtSelection.toLowerCase()) {
 			// Letter matches but it's not the next expected character
 			errorCount++;
 			lastFeedback = `${colors.brightRed}✗ Rangur stafur! Þarft '${nextExpectedChar}', fékk '${letterAtSelection}'${colors.reset}`;

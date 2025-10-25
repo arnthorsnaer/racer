@@ -62,8 +62,8 @@ function generateWAV(frequency, duration, volume = 0.3) {
     return Buffer.concat([header, samples]);
 }
 
-// Generate ascending tone (success)
-function generateSuccess() {
+// Generate ascending tone (success) with pitch offset
+function generateSuccess(pitchOffset = 0) {
     const sampleRate = 44100;
     const duration = 0.15;
     const numSamples = Math.floor(sampleRate * duration);
@@ -88,7 +88,8 @@ function generateSuccess() {
     for (let i = 0; i < numSamples; i++) {
         const t = i / sampleRate;
         const progress = i / numSamples;
-        const freq = 600 + (progress * 400); // 600Hz -> 1000Hz
+        // Base frequency increases with each catch: 600Hz -> 1000Hz, plus offset
+        const freq = (600 + pitchOffset) + (progress * 400);
         const value = Math.sin(2 * Math.PI * freq * t);
         const envelope = Math.min(1, Math.min(i / (sampleRate * 0.01), (numSamples - i) / (sampleRate * 0.02)));
         const sample = Math.floor(value * 0.3 * envelope * 32767);
@@ -176,8 +177,8 @@ function generateVictory() {
     return Buffer.concat([header, samples]);
 }
 
-// Generate short tick (letter spawn)
-function generateTick() {
+// Generate short tick (letter spawn) with specified frequency
+function generateTick(frequency = 1200) {
     const sampleRate = 44100;
     const duration = 0.03;
     const numSamples = Math.floor(sampleRate * duration);
@@ -201,7 +202,7 @@ function generateTick() {
     const samples = Buffer.alloc(numSamples * bytesPerSample);
     for (let i = 0; i < numSamples; i++) {
         const t = i / sampleRate;
-        const value = Math.sin(2 * Math.PI * 1200 * t);
+        const value = Math.sin(2 * Math.PI * frequency * t);
         const envelope = Math.max(0, 1 - (i / numSamples));
         const sample = Math.floor(value * 0.15 * envelope * 32767);
         samples.writeInt16LE(sample, i * bytesPerSample);
@@ -219,8 +220,12 @@ if (!fs.existsSync(soundsDir)) {
 // Generate all sounds
 console.log('Generating sound files...');
 
-fs.writeFileSync(path.join(soundsDir, 'success.wav'), generateSuccess());
-console.log('✓ Generated success.wav');
+// Generate 30 success sounds with increasing pitch (20Hz increments)
+for (let i = 0; i < 30; i++) {
+    const pitchOffset = i * 20; // Each catch increases pitch by 20Hz
+    fs.writeFileSync(path.join(soundsDir, `success${i}.wav`), generateSuccess(pitchOffset));
+}
+console.log('✓ Generated 30 success sounds (success0.wav - success29.wav)');
 
 fs.writeFileSync(path.join(soundsDir, 'error.wav'), generateError());
 console.log('✓ Generated error.wav');
@@ -228,7 +233,9 @@ console.log('✓ Generated error.wav');
 fs.writeFileSync(path.join(soundsDir, 'victory.wav'), generateVictory());
 console.log('✓ Generated victory.wav');
 
-fs.writeFileSync(path.join(soundsDir, 'tick.wav'), generateTick());
-console.log('✓ Generated tick.wav');
+// Generate two tick sounds with different pitches for tik-tok effect
+fs.writeFileSync(path.join(soundsDir, 'tick1.wav'), generateTick(1000)); // Lower pitch "tik"
+fs.writeFileSync(path.join(soundsDir, 'tick2.wav'), generateTick(1400)); // Higher pitch "tok"
+console.log('✓ Generated tick1.wav and tick2.wav');
 
 console.log('\nAll sound files generated successfully!');
