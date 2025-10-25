@@ -118,7 +118,7 @@ const gameInterval = setInterval(() => {
 
 	// Render
 	console.clear();
-	console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
+	console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
 	for (let i = board.length - 1; i >= 0; i--) {
 		if (board[i] !== undefined) {
 			if (i === 4) {
@@ -136,7 +136,7 @@ const gameInterval = setInterval(() => {
 	// Show progress with typed part and remaining part
 	const fullTarget = levels[0].target;
 	const remaining = fullTarget.substring(typedProgress.length);
-	console.log(`\n${colors.bright}Progress: ${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
+	console.log(`\n${colors.bright}Framvinda: ${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
 
 	// Show feedback from last action
 	if (lastFeedback) {
@@ -148,7 +148,7 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 	// Handle Ctrl+C to quit
 	if (key && key.ctrl && key.name === 'c') {
 		clearInterval(gameInterval);
-		console.log('\n\nExiting game...\n');
+		console.log('\n\nHætti í leik...\n');
 		process.exit(0);
 	}
 
@@ -156,8 +156,8 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 	if (key && key.name === 'f1') {
 		soundEnabled = !soundEnabled;
 		lastFeedback = soundEnabled
-			? `${colors.brightCyan}🔊 Sound enabled${colors.reset}`
-			: `${colors.brightCyan}🔇 Sound muted${colors.reset}`;
+			? `${colors.brightCyan}🔊 Hljóð á${colors.reset}`
+			: `${colors.brightCyan}🔇 Hljóð af${colors.reset}`;
 		return;
 	}
 
@@ -185,7 +185,7 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 			// Success! Caught the right letter
 			board[4].success = true;
 			typedProgress += letterAtSelection;
-			lastFeedback = `${colors.brightGreen}✓ Caught '${letterAtSelection}'! Great!${colors.reset}`;
+			lastFeedback = `${colors.brightGreen}✓ Náðir '${letterAtSelection}'! Frábært!${colors.reset}`;
 
 			// Play success sound
 			playGameSound('success');
@@ -194,27 +194,27 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 			if (typedProgress === fullTarget) {
 				clearInterval(gameInterval);
 				console.clear();
-				console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
-				console.log(`\n${colors.bright}${colors.brightMagenta}🎉 CONGRATULATIONS! You completed the word: ${colors.brightYellow}${fullTarget}${colors.reset}\n`);
+				console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
+				console.log(`\n${colors.bright}${colors.brightMagenta}🎉 TIL HAMINGJU! Þú kláraðir orðið: ${colors.brightYellow}${fullTarget}${colors.reset}\n`);
 
 				// Display performance stats
 				const isPerfect = errorCount === 0 && missedLetters === 0;
 
-				console.log(`${colors.bright}${colors.brightCyan}=== PERFORMANCE STATS ===${colors.reset}`);
+				console.log(`${colors.bright}${colors.brightCyan}=== STATTAR ===${colors.reset}`);
 
 				if (isPerfect) {
-					console.log(`${colors.bright}${colors.brightGreen}★ PERFECT SCORE! ★${colors.reset}`);
-					console.log(`${colors.brightGreen}No errors and caught every letter on first try!${colors.reset}\n`);
+					console.log(`${colors.bright}${colors.brightGreen}★ FULLKOMIÐ! ★${colors.reset}`);
+					console.log(`${colors.brightGreen}Engar villur og náðir hverjum staf í fyrstu tilraun!${colors.reset}\n`);
 				} else {
-					console.log(`${colors.brightYellow}Errors (wrong keys pressed): ${colors.brightRed}${errorCount}${colors.reset}`);
-					console.log(`${colors.brightYellow}Missed letters: ${colors.brightRed}${missedLetters}${colors.reset}\n`);
+					console.log(`${colors.brightYellow}Villur (rangar lyklar): ${colors.brightRed}${errorCount}${colors.reset}`);
+					console.log(`${colors.brightYellow}Missaðir stafir: ${colors.brightRed}${missedLetters}${colors.reset}\n`);
 
 					if (errorCount === 0 && missedLetters > 0) {
-						console.log(`${colors.cyan}Great accuracy! Try to catch letters faster next time.${colors.reset}\n`);
+						console.log(`${colors.cyan}Frábær nákvæmni! Reyndu að ná stöfum hraðar næst.${colors.reset}\n`);
 					} else if (errorCount > 0 && missedLetters === 0) {
-						console.log(`${colors.cyan}Perfect efficiency! Work on reducing errors.${colors.reset}\n`);
+						console.log(`${colors.cyan}Fullkomin skilvirkni! Einbeittu þér að því að fækka villum.${colors.reset}\n`);
 					} else {
-						console.log(`${colors.cyan}Keep practicing to achieve a perfect score!${colors.reset}\n`);
+						console.log(`${colors.cyan}Haltu áfram að æfa til að ná fullkomnum árangri!${colors.reset}\n`);
 					}
 				}
 
@@ -227,37 +227,37 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 		} else if (pickedChar === letterAtSelection) {
 			// Letter matches but it's not the next expected character
 			errorCount++;
-			lastFeedback = `${colors.brightRed}✗ Wrong letter! Need '${nextExpectedChar}', got '${letterAtSelection}'${colors.reset}`;
+			lastFeedback = `${colors.brightRed}✗ Rangur stafur! Þarft '${nextExpectedChar}', fékk '${letterAtSelection}'${colors.reset}`;
 			playGameSound('error');
 		} else {
 			// Pressed key doesn't match the letter at selection
 			errorCount++;
-			lastFeedback = `${colors.brightRed}✗ Missed! Pressed '${pickedChar}' but selection shows '${letterAtSelection}'${colors.reset}`;
+			lastFeedback = `${colors.brightRed}✗ Missir! Ýttir á '${pickedChar}' en valið sýnir '${letterAtSelection}'${colors.reset}`;
 			playGameSound('error');
 		}
 	} else {
-		lastFeedback = `${colors.red}✗ No letter at selection line!${colors.reset}`;
+		lastFeedback = `${colors.red}✗ Enginn stafur á vallínu!${colors.reset}`;
 	}
 });
 
 // Initial display
 console.clear();
 console.log(`${colors.bright}${colors.brightCyan}=== ICELANDIC TYPING RACER ===${colors.reset}\n`);
-console.log(`${colors.bright}Target word: ${colors.brightYellow}${targetLeft}${colors.reset}`);
-console.log(`\n${colors.cyan}Controls:${colors.reset}`);
-console.log(`  ${colors.green}- Letters appear automatically every half second${colors.reset}`);
-console.log(`  ${colors.green}- Press letter keys to select them${colors.reset}`);
-console.log(`  ${colors.green}- Press F1 to toggle sound on/off${colors.reset}`);
-console.log(`  ${colors.green}- Press Ctrl+C to quit${colors.reset}\n`);
-console.log(`${colors.magenta}--- Board ---${colors.reset}`);
+console.log(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}`);
+console.log(`\n${colors.cyan}Stjórnun:${colors.reset}`);
+console.log(`  ${colors.green}- Stafir birtast sjálfkrafa á hálfs sekúndu fresti${colors.reset}`);
+console.log(`  ${colors.green}- Ýttu á stafatakka til að velja þá${colors.reset}`);
+console.log(`  ${colors.green}- Ýttu á F1 til að kveikja/slökkva á hljóði${colors.reset}`);
+console.log(`  ${colors.green}- Ýttu á Ctrl+C til að hætta${colors.reset}\n`);
+console.log(`${colors.magenta}--- Borð ---${colors.reset}`);
 for (let i = 0; i < board.length; i++) {
 	if (i === 4) {
-		console.log(`${colors.brightYellow}# (selection line)${colors.reset}`);
+		console.log(`${colors.brightYellow}# (vallína)${colors.reset}`);
 	} else {
 		console.log('');
 	}
 }
-console.log(`\n${colors.brightGreen}Game starting...${colors.reset}\n`);
+console.log(`\n${colors.brightGreen}Leikur byrjar...${colors.reset}\n`);
 
 if (process.stdin.isTTY) {
 	process.stdin.setRawMode(true);
