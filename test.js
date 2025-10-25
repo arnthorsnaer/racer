@@ -29,6 +29,8 @@ const splitWord = split(levels[0].target);
 const bagOfChars = mix(splitWord, alphabet);
 
 let targetLeft = levels[0].target;
+let typedProgress = ""; // Track what's been typed successfully
+let lastFeedback = ""; // Track feedback from last key press
 const board = new Array(19);
 
 // Auto-progress game every second
@@ -45,7 +47,8 @@ const gameInterval = setInterval(() => {
 	for (let i = board.length - 1; i >= 0; i--) {
 		if (board[i] !== undefined) {
 			if (i === 4) {
-				console.log(`#${board[i].generated}`);
+				const marker = board[i].success ? '✓' : '#';
+				console.log(`${marker}${board[i].generated}`);
 			} else {
 				console.log(board[i].generated);
 			}
@@ -54,7 +57,15 @@ const gameInterval = setInterval(() => {
 		}
 	}
 
-	console.log(`\nTarget word : ${targetLeft}`);
+	// Show progress with typed part and remaining part
+	const fullTarget = levels[0].target;
+	const remaining = fullTarget.substring(typedProgress.length);
+	console.log(`\nProgress: [${typedProgress}]${remaining}`);
+
+	// Show feedback from last action
+	if (lastFeedback) {
+		console.log(lastFeedback);
+	}
 }, 1000);
 
 process.stdin.on('keypress', (ch, key) => {
@@ -66,14 +77,40 @@ process.stdin.on('keypress', (ch, key) => {
 	}
 
 	// Check if i pressed a key
-	let pickedChar = "";
-
 	if (key && key.name !== "enter" && key.name !== "return") {
-		pickedChar = key.name;
-		// TODO: check if it matched my selected square
-		// TODO: check board position X for match
-		// targetLeft = targetLeft.replace(new RegExp(pickedChar, "gi"), '');
-		// bagOfChars = mix(split(targetLeft), alphabet);
+		const pickedChar = ch || key.name;
+		const fullTarget = levels[0].target;
+		const nextExpectedChar = fullTarget[typedProgress.length];
+
+		// Check if there's a letter at the selection line (position 4)
+		if (board[4] !== undefined && board[4].generated) {
+			const letterAtSelection = board[4].generated;
+
+			// Check if pressed key matches the letter at selection AND it's the next expected character
+			if (pickedChar === letterAtSelection && letterAtSelection === nextExpectedChar) {
+				// Success! Caught the right letter
+				board[4].success = true;
+				typedProgress += letterAtSelection;
+				lastFeedback = `✓ Caught '${letterAtSelection}'! Great!`;
+
+				// Check if word is complete
+				if (typedProgress === fullTarget) {
+					clearInterval(gameInterval);
+					console.clear();
+					console.log('=== ICELANDIC TYPING RACER ===\n');
+					console.log(`\n🎉 CONGRATULATIONS! You completed the word: ${fullTarget}\n`);
+					process.exit(0);
+				}
+			} else if (pickedChar === letterAtSelection) {
+				// Letter matches but it's not the next expected character
+				lastFeedback = `✗ Wrong letter! Need '${nextExpectedChar}', got '${letterAtSelection}'`;
+			} else {
+				// Pressed key doesn't match the letter at selection
+				lastFeedback = `✗ Missed! Pressed '${pickedChar}' but selection shows '${letterAtSelection}'`;
+			}
+		} else {
+			lastFeedback = `✗ No letter at selection line!`;
+		}
 	}
 });
 
