@@ -150,7 +150,7 @@ describe('adaptive-difficulty', () => {
 					isPerfect: true,
 				};
 
-				const result = calculateNextWordLength(5, stats, MIN_LENGTH, MAX_LENGTH);
+				const result = calculateNextWordLength(5, stats, MIN_LENGTH, MAX_LENGTH, 0);
 				expect(result.newWordLength).toBe(6);
 				expect(result.progressionType).toBe('upgrade');
 			});
@@ -162,7 +162,7 @@ describe('adaptive-difficulty', () => {
 					isPerfect: true,
 				};
 
-				const result = calculateNextWordLength(MAX_LENGTH, stats, MIN_LENGTH, MAX_LENGTH);
+				const result = calculateNextWordLength(MAX_LENGTH, stats, MIN_LENGTH, MAX_LENGTH, 0);
 				expect(result.newWordLength).toBe(MAX_LENGTH);
 				expect(result.progressionType).toBe('upgrade');
 			});
@@ -174,7 +174,7 @@ describe('adaptive-difficulty', () => {
 					isPerfect: true,
 				};
 
-				const result = calculateNextWordLength(9, stats, MIN_LENGTH, MAX_LENGTH);
+				const result = calculateNextWordLength(9, stats, MIN_LENGTH, MAX_LENGTH, 0);
 				expect(result.newWordLength).toBe(10);
 			});
 		});
@@ -187,7 +187,7 @@ describe('adaptive-difficulty', () => {
 					isPerfect: false,
 				};
 
-				const result = calculateNextWordLength(5, stats, MIN_LENGTH, MAX_LENGTH);
+				const result = calculateNextWordLength(5, stats, MIN_LENGTH, MAX_LENGTH, 0);
 				expect(result.newWordLength).toBe(4);
 				expect(result.progressionType).toBe('downgrade');
 			});
@@ -199,7 +199,7 @@ describe('adaptive-difficulty', () => {
 					isPerfect: false,
 				};
 
-				const result = calculateNextWordLength(MIN_LENGTH, stats, MIN_LENGTH, MAX_LENGTH);
+				const result = calculateNextWordLength(MIN_LENGTH, stats, MIN_LENGTH, MAX_LENGTH, 0);
 				expect(result.newWordLength).toBe(MIN_LENGTH);
 				expect(result.progressionType).toBe('downgrade');
 			});
@@ -211,7 +211,7 @@ describe('adaptive-difficulty', () => {
 					isPerfect: false,
 				};
 
-				const result = calculateNextWordLength(4, stats, MIN_LENGTH, MAX_LENGTH);
+				const result = calculateNextWordLength(4, stats, MIN_LENGTH, MAX_LENGTH, 0);
 				expect(result.newWordLength).toBe(3);
 			});
 		});
@@ -224,7 +224,7 @@ describe('adaptive-difficulty', () => {
 					isPerfect: false,
 				};
 
-				const result = calculateNextWordLength(5, stats, MIN_LENGTH, MAX_LENGTH);
+				const result = calculateNextWordLength(5, stats, MIN_LENGTH, MAX_LENGTH, 0);
 				expect(result.newWordLength).toBe(5);
 				expect(result.progressionType).toBe('stay');
 			});
@@ -236,7 +236,7 @@ describe('adaptive-difficulty', () => {
 					isPerfect: false,
 				};
 
-				const result = calculateNextWordLength(5, stats, MIN_LENGTH, MAX_LENGTH);
+				const result = calculateNextWordLength(5, stats, MIN_LENGTH, MAX_LENGTH, 0);
 				expect(result.newWordLength).toBe(5);
 				expect(result.progressionType).toBe('stay');
 			});
@@ -250,7 +250,7 @@ describe('adaptive-difficulty', () => {
 					isPerfect: true,
 				};
 
-				const result = calculateNextWordLength(MIN_LENGTH, perfectStats, MIN_LENGTH, MAX_LENGTH);
+				const result = calculateNextWordLength(MIN_LENGTH, perfectStats, MIN_LENGTH, MAX_LENGTH, 0);
 				expect(result.newWordLength).toBe(MIN_LENGTH + 1);
 			});
 
@@ -261,7 +261,7 @@ describe('adaptive-difficulty', () => {
 					isPerfect: false,
 				};
 
-				const result = calculateNextWordLength(MAX_LENGTH, badStats, MIN_LENGTH, MAX_LENGTH);
+				const result = calculateNextWordLength(MAX_LENGTH, badStats, MIN_LENGTH, MAX_LENGTH, 0);
 				expect(result.newWordLength).toBe(MAX_LENGTH - 1);
 			});
 		});

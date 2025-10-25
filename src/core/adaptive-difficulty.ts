@@ -47,7 +47,7 @@ export const shouldStay = (stats: PerformanceStats): boolean => {
 /**
  * Number of consecutive perfect completions required to upgrade
  */
-export const PERFECT_COMPLETIONS_REQUIRED = 2;
+export const PERFECT_COMPLETIONS_REQUIRED = 1;
 
 /**
  * Calculate the next word length based on performance
