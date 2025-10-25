@@ -3,7 +3,7 @@
  * Orchestrates side effects and wires together pure core logic
  */
 
-import levels from './levels.js';
+import words from './words.js';
 import { colors } from './src/presentation/theme.js';
 import { alphabet } from './src/presentation/theme.js';
 import {
@@ -61,7 +61,7 @@ const FRAME_WIDTH = 50;
 const GAME_TICK_INTERVAL = 400; // ms
 
 // Initialize word pool and adaptive difficulty
-const singleWordLevels = filterSingleWords(levels);
+const singleWordLevels = filterSingleWords(words);
 const wordsByLength: WordsByLength = organizeWordsByLength(singleWordLevels);
 const maxWordLength = getMaxWordLength(wordsByLength);
 
