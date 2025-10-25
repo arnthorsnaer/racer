@@ -144,17 +144,25 @@ const startGameLoop = () => {
 	console.clear();
 	console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
 	for (let i = 0; i < board.length; i++) {
-		if (board[i] !== undefined) {
-			if (i === 16) {
+		// Always show the catch character at position 16
+		if (i === 16) {
+			if (board[i] !== undefined) {
 				const marker = board[i]!.success ? `${colors.brightGreen}✓` : `${colors.brightYellow}#`;
 				const letterColor = board[i]!.success ? colors.brightGreen : colors.brightMagenta;
 				console.log(`${marker}${letterColor}${board[i]!.generated}${colors.reset}`);
 			} else {
-				console.log(`${colors.cyan}${board[i]!.generated}${colors.reset}`);
+				// Show just the catch character even when no letter is there
+				console.log(`${colors.brightYellow}#${colors.reset}`);
 			}
-		} else {
-			console.log('');
+		} else if (i < 16) {
+			// Only render positions before the catch line (0-15)
+			if (board[i] !== undefined) {
+				console.log(`${colors.cyan}${board[i]!.generated}${colors.reset}`);
+			} else {
+				console.log('');
+			}
 		}
+		// Skip positions after the catch line (17-18) to eliminate spacing
 	}
 
 	// Show progress with typed part and remaining part
