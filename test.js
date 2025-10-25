@@ -66,6 +66,24 @@ process.stdin.on('keypress', (ch, key) => {
 	}
 });
 
+// Initial display
+console.clear();
+console.log('=== ICELANDIC TYPING RACER ===\n');
+console.log(`Target word: ${targetLeft}`);
+console.log('\nControls:');
+console.log('  - Press ENTER to generate a new letter');
+console.log('  - Press letter keys to select them');
+console.log('  - Press Ctrl+C to quit\n');
+console.log('--- Board ---');
+for (let i = 0; i < board.length; i++) {
+	if (i === 4) {
+		console.log('# (selection line)');
+	} else {
+		console.log('');
+	}
+}
+console.log('\nPress ENTER to start!\n');
+
 if (process.stdin.isTTY) {
 	process.stdin.setRawMode(true);
 }
