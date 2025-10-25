@@ -118,9 +118,9 @@ export const buildGameScreen = (
 	lines.push('');
 
 	// Adaptive difficulty info
-	const levelInfo = `${colors.electricCyan}STIG: ${currentLevel}${colors.reset} ${colors.sunsetOrange}(${fullTarget.length}-stafa orð)${colors.reset}`;
+	const levelInfo = `${colors.electricCyan}BORÐ: ${currentLevel}${colors.reset} ${colors.sunsetOrange}(${fullTarget.length}-stafa orð)${colors.reset}`;
 	const wordInfo = `${colors.limeGreen}Orð kláruð: ${completedWords}${colors.reset}`;
-	const scoreInfo = `${colors.cosmicPurple}Skor: ${score.toFixed(1)}${colors.reset}`;
+	const scoreInfo = `${colors.cosmicPurple}Stig: ${score.toFixed(1)}${colors.reset}`;
 	lines.push(`${levelInfo}  ${wordInfo}  ${scoreInfo}`);
 	lines.push('');
 
@@ -158,12 +158,12 @@ export const buildWelcomeScreen = (
 
 	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 	lines.push('');
-	lines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevel} (${targetWord.length}-stafa orð)${colors.reset}`);
+	lines.push(`${colors.bright}${colors.electricBlue}Borð ${currentLevel} (${targetWord.length}-stafa orð)${colors.reset}`);
 	lines.push(`${colors.bright}Markmiðsorð: ${colors.sunsetOrange}${targetWord}${colors.reset}`);
-	lines.push(`${colors.limeGreen}Orð kláruð: ${completedWords}${colors.reset}  ${colors.cosmicPurple}Skor: ${score.toFixed(1)}${colors.reset}`);
+	lines.push(`${colors.limeGreen}Orð kláruð: ${completedWords}${colors.reset}  ${colors.cosmicPurple}Stig: ${score.toFixed(1)}${colors.reset}`);
 	lines.push('');
 	lines.push(`${colors.electricCyan}Stjórnun:${colors.reset}`);
-	lines.push(`  ${colors.arcadeGreen}▶ Stafir birtast sjálfkrafa á 0.4 sekúndu fresti${colors.reset}`);
+	lines.push(`  ${colors.arcadeGreen}▶ Stafir birtast sjálfkrafa á 0.6 sekúndu fresti${colors.reset}`);
 	lines.push(`  ${colors.arcadeGreen}▶ Ýttu á stafatakka til að velja þá${colors.reset}`);
 	lines.push(`  ${colors.arcadeGreen}▶ Ýttu á F1 til að kveikja/slökkva á hljóði${colors.reset}`);
 	lines.push(`  ${colors.arcadeGreen}▶ Ýttu á Ctrl+C til að hætta${colors.reset}`);
@@ -201,8 +201,8 @@ export const buildCompletionScreen = (
 	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 	lines.push('');
 	lines.push(`${colors.bright}${colors.neonPink}★ TIL HAMINGJU! Þú kláraðir orðið: ${colors.sunsetOrange}${fullTarget}${colors.reset}`);
-	lines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevel} lokið!${colors.reset}`);
-	lines.push(`${colors.limeGreen}Orð kláruð: ${completedWords}${colors.reset}  ${colors.cosmicPurple}Skor: ${score.toFixed(1)}${colors.reset}`);
+	lines.push(`${colors.bright}${colors.electricBlue}Borð ${currentLevel} lokið!${colors.reset}`);
+	lines.push(`${colors.limeGreen}Orð kláruð: ${completedWords}${colors.reset}  ${colors.cosmicPurple}Stig: ${score.toFixed(1)}${colors.reset}`);
 	lines.push('');
 
 	// Display performance stats
@@ -239,7 +239,7 @@ export const buildAllCompleteScreen = (totalLevels: number): string[] => {
 	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 	lines.push('');
 	lines.push(`${colors.bright}${colors.neonPink}★ TIL HAMINGJU! ★${colors.reset}`);
-	lines.push(`${colors.limeGreen}Þú hefur klárað öll ${totalLevels} stigin!${colors.reset}`);
+	lines.push(`${colors.limeGreen}Þú hefur klárað öll ${totalLevels} borðin!${colors.reset}`);
 
 	return lines;
 };
@@ -256,7 +256,7 @@ export const buildNextLevelScreen = (
 
 	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 	lines.push('');
-	lines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevel + 1}/${totalLevels}${colors.reset}`);
+	lines.push(`${colors.bright}${colors.electricBlue}Borð ${currentLevel + 1}/${totalLevels}${colors.reset}`);
 	lines.push(`${colors.bright}Markmiðsorð: ${colors.sunsetOrange}${targetWord}${colors.reset}`);
 	lines.push('');
 	lines.push(`${colors.limeGreen}Leikur byrjar...${colors.reset}`);
