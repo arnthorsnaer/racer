@@ -1,4 +1,9 @@
-export default [
+export interface Level {
+	level: number;
+	target: string;
+}
+
+const levels: Level[] = [
 	{
 		level: 1,
 		target: "Húsgagn"
@@ -12,3 +17,5 @@ export default [
 		target: "Brjánn er hress"
 	}
 ];
+
+export default levels;

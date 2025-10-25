@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Icelandic typing racer game",
-  "main": "test.js",
+  "main": "index.ts",
   "scripts": {
-    "start": "node test.js"
+    "start": "bun run index.ts",
+    "dev": "bun --watch index.ts"
   },
   "dependencies": {
     "keypress": "^0.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "bun-types": "^1.0.0"
   }
 }
