@@ -202,166 +202,246 @@ const levels: Level[] = [
 	},
 	{
 		level: 50,
-		target: "gott veður"
+		target: "vetrtur"
 	},
 	{
 		level: 51,
-		target: "fallegt land"
+		target: "höfuður"
 	},
 	{
 		level: 52,
-		target: "kaldur vindur"
+		target: "bíbílar"
 	},
 	{
 		level: 53,
-		target: "hlýtt í dag"
+		target: "kennari"
 	},
 	{
 		level: 54,
-		target: "blátt ský"
+		target: "stokkur"
 	},
 	{
 		level: 55,
-		target: "grænir dalir"
+		target: "höfuðborg"
 	},
 	{
 		level: 56,
-		target: "djúpur sjór"
+		target: "barnabók"
 	},
 	{
 		level: 57,
-		target: "há fjöll"
+		target: "gluggatjöld"
 	},
 	{
 		level: 58,
-		target: "gulur sandur"
+		target: "ástarsaga"
 	},
 	{
 		level: 59,
-		target: "fögur náttúra"
+		target: "málfræði"
 	},
 	{
 		level: 60,
-		target: "sætur köttur"
+		target: "manneskja"
 	},
 	{
 		level: 61,
-		target: "stór hestur"
+		target: "græðlingur"
 	},
 	{
 		level: 62,
-		target: "lítill fugl"
+		target: "sjúkrahús"
 	},
 	{
 		level: 63,
-		target: "góður vinur"
+		target: "tölvuleikur"
 	},
 	{
 		level: 64,
-		target: "falleg rós"
+		target: "aðferðafræði"
 	},
 	{
 		level: 65,
-		target: "björt stjarna"
+		target: "menntaskóli"
 	},
 	{
 		level: 66,
-		target: "hvítur snjór"
+		target: "listrænt"
 	},
 	{
 		level: 67,
-		target: "rauður bíll"
+		target: "kjallarinn"
 	},
 	{
 		level: 68,
-		target: "nýtt hús"
+		target: "kappakstur"
 	},
 	{
 		level: 69,
-		target: "gamalt tré"
+		target: "fjallatoppur"
 	},
 	{
 		level: 70,
-		target: "ég er hamingjusöm"
+		target: "gott veður"
 	},
 	{
 		level: 71,
-		target: "veðrið er gott"
+		target: "fallegt land"
 	},
 	{
 		level: 72,
-		target: "sólin skín björt"
+		target: "kaldur vindur"
 	},
 	{
 		level: 73,
-		target: "tunglið er fullt"
+		target: "hlýtt í dag"
 	},
 	{
 		level: 74,
-		target: "vindurinn blæs sterkt"
+		target: "blátt ský"
 	},
 	{
 		level: 75,
-		target: "hafið er blátt"
+		target: "grænir dalir"
 	},
 	{
 		level: 76,
-		target: "fjöllin eru há"
+		target: "djúpur sjór"
 	},
 	{
 		level: 77,
-		target: "fuglinn syngur fallega"
+		target: "há fjöll"
 	},
 	{
 		level: 78,
-		target: "kötturinn sefur í sólinni"
+		target: "gulur sandur"
 	},
 	{
 		level: 79,
-		target: "hesturinn hleypur hratt"
+		target: "fögur náttúra"
 	},
 	{
 		level: 80,
-		target: "börnin leika sér úti"
+		target: "sætur köttur"
 	},
 	{
 		level: 81,
-		target: "ég elska Ísland"
+		target: "stór hestur"
 	},
 	{
 		level: 82,
-		target: "náttúran er undursamleg"
+		target: "lítill fugl"
 	},
 	{
 		level: 83,
-		target: "regnboginn er litrík"
+		target: "góður vinur"
 	},
 	{
 		level: 84,
-		target: "morgunninn er fríður"
+		target: "falleg rós"
 	},
 	{
 		level: 85,
-		target: "kvöldið er kyrrt"
+		target: "björt stjarna"
 	},
 	{
 		level: 86,
-		target: "sumarið er yndislegt"
+		target: "hvítur snjór"
 	},
 	{
 		level: 87,
-		target: "vetrarnóttin er löng"
+		target: "rauður bíll"
 	},
 	{
 		level: 88,
-		target: "haustið er gylltur tími"
+		target: "nýtt hús"
 	},
 	{
 		level: 89,
-		target: "vorið kemur með blómum"
+		target: "gamalt tré"
 	},
 	{
 		level: 90,
+		target: "ég er hamingjusöm"
+	},
+	{
+		level: 91,
+		target: "veðrið er gott"
+	},
+	{
+		level: 92,
+		target: "sólin skín björt"
+	},
+	{
+		level: 93,
+		target: "tunglið er fullt"
+	},
+	{
+		level: 94,
+		target: "vindurinn blæs sterkt"
+	},
+	{
+		level: 95,
+		target: "hafið er blátt"
+	},
+	{
+		level: 96,
+		target: "fjöllin eru há"
+	},
+	{
+		level: 97,
+		target: "fuglinn syngur fallega"
+	},
+	{
+		level: 98,
+		target: "kötturinn sefur í sólinni"
+	},
+	{
+		level: 99,
+		target: "hesturinn hleypur hratt"
+	},
+	{
+		level: 100,
+		target: "börnin leika sér úti"
+	},
+	{
+		level: 101,
+		target: "ég elska Ísland"
+	},
+	{
+		level: 102,
+		target: "náttúran er undursamleg"
+	},
+	{
+		level: 103,
+		target: "regnboginn er litrík"
+	},
+	{
+		level: 104,
+		target: "morgunninn er fríður"
+	},
+	{
+		level: 105,
+		target: "kvöldið er kyrrt"
+	},
+	{
+		level: 106,
+		target: "sumarið er yndislegt"
+	},
+	{
+		level: 107,
+		target: "vetrarnóttin er löng"
+	},
+	{
+		level: 108,
+		target: "haustið er gylltur tími"
+	},
+	{
+		level: 109,
+		target: "vorið kemur með blómum"
+	},
+	{
+		level: 110,
 		target: "ég sé norðurljósin dansa"
 	}
 ];

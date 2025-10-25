@@ -256,27 +256,27 @@ describe('formatters', () => {
 		};
 
 		it('should include title', () => {
-			const lines = buildGameScreen(mockState, 'test', 0, 5, '', 13);
+			const lines = buildGameScreen(mockState, 'test', 1, 5, 50.5, '', 13);
 
 			expect(lines.some(line => line.includes('ÍSLENSKUR'))).toBe(true);
 		});
 
 		it('should include board', () => {
-			const lines = buildGameScreen(mockState, 'test', 0, 5, '', 13);
+			const lines = buildGameScreen(mockState, 'test', 1, 5, 50.5, '', 13);
 
 			// Should have multiple lines (at least title + board + progress + stats)
 			expect(lines.length).toBeGreaterThan(5);
 		});
 
 		it('should include progress', () => {
-			const lines = buildGameScreen(mockState, 'test', 0, 5, '', 13);
+			const lines = buildGameScreen(mockState, 'test', 1, 5, 50.5, '', 13);
 
 			const progressLine = lines.find(line => line.includes('tes'));
 			expect(progressLine).toBeDefined();
 		});
 
 		it('should include stats', () => {
-			const lines = buildGameScreen(mockState, 'test', 0, 5, '', 13);
+			const lines = buildGameScreen(mockState, 'test', 1, 5, 50.5, '', 13);
 
 			const statsLine = lines.find(line => line.includes('2') && line.includes('1'));
 			expect(statsLine).toBeDefined();
@@ -284,13 +284,13 @@ describe('formatters', () => {
 
 		it('should include feedback when provided', () => {
 			const feedback = 'Great job!';
-			const lines = buildGameScreen(mockState, 'test', 0, 5, feedback, 13);
+			const lines = buildGameScreen(mockState, 'test', 1, 5, 50.5, feedback, 13);
 
 			expect(lines.some(line => line.includes(feedback))).toBe(true);
 		});
 
 		it('should not include feedback when empty', () => {
-			const lines = buildGameScreen(mockState, 'test', 0, 5, '', 13);
+			const lines = buildGameScreen(mockState, 'test', 1, 5, 50.5, '', 13);
 
 			// Should still have lines, just without feedback line
 			expect(lines.length).toBeGreaterThan(0);
@@ -299,31 +299,31 @@ describe('formatters', () => {
 
 	describe('buildWelcomeScreen', () => {
 		it('should include title', () => {
-			const lines = buildWelcomeScreen('test', 0, 5, 16, 13);
+			const lines = buildWelcomeScreen('test', 1, 0, 0, 16, 13);
 
 			expect(lines.some(line => line.includes('ÍSLENSKUR'))).toBe(true);
 		});
 
 		it('should include level information', () => {
-			const lines = buildWelcomeScreen('test', 2, 10, 16, 13);
+			const lines = buildWelcomeScreen('test', 3, 5, 60, 16, 13);
 
-			expect(lines.some(line => line.includes('3/10'))).toBe(true);
+			expect(lines.some(line => line.includes('Stig 3'))).toBe(true);
 		});
 
 		it('should include target word', () => {
-			const lines = buildWelcomeScreen('falleg', 0, 5, 16, 13);
+			const lines = buildWelcomeScreen('falleg', 1, 0, 0, 16, 13);
 
 			expect(lines.some(line => line.includes('falleg'))).toBe(true);
 		});
 
 		it('should include instructions', () => {
-			const lines = buildWelcomeScreen('test', 0, 5, 16, 13);
+			const lines = buildWelcomeScreen('test', 1, 0, 0, 16, 13);
 
 			expect(lines.some(line => line.includes('Stjórnun'))).toBe(true);
 		});
 
 		it('should show catch line indicator', () => {
-			const lines = buildWelcomeScreen('test', 0, 5, 16, 13);
+			const lines = buildWelcomeScreen('test', 1, 0, 0, 16, 13);
 
 			expect(lines.some(line => line.includes('vallína'))).toBe(true);
 		});
@@ -342,25 +342,25 @@ describe('formatters', () => {
 		};
 
 		it('should show congratulations', () => {
-			const lines = buildCompletionScreen('test', 0, 5, mockStats, mockFeedback, true);
+			const lines = buildCompletionScreen('test', 1, 5, 50, mockStats, mockFeedback, '◐ Gott! Reynum aftur');
 
 			expect(lines.some(line => line.includes('HAMINGJU'))).toBe(true);
 		});
 
 		it('should show completed word', () => {
-			const lines = buildCompletionScreen('falleg', 0, 5, mockStats, mockFeedback, true);
+			const lines = buildCompletionScreen('falleg', 1, 5, 50, mockStats, mockFeedback, '◐ Gott! Reynum aftur');
 
 			expect(lines.some(line => line.includes('falleg'))).toBe(true);
 		});
 
 		it('should show level completion', () => {
-			const lines = buildCompletionScreen('test', 2, 10, mockStats, mockFeedback, true);
+			const lines = buildCompletionScreen('test', 3, 10, 30, mockStats, mockFeedback, '◐ Gott! Reynum aftur');
 
-			expect(lines.some(line => line.includes('3/10'))).toBe(true);
+			expect(lines.some(line => line.includes('Stig 3'))).toBe(true);
 		});
 
 		it('should show stats for non-perfect performance', () => {
-			const lines = buildCompletionScreen('test', 0, 5, mockStats, mockFeedback, true);
+			const lines = buildCompletionScreen('test', 1, 5, 50, mockStats, mockFeedback, '◐ Gott! Reynum aftur');
 
 			expect(lines.some(line => line.includes('2'))).toBe(true);
 			expect(lines.some(line => line.includes('1'))).toBe(true);
@@ -377,21 +377,22 @@ describe('formatters', () => {
 				type: 'perfect',
 			};
 
-			const lines = buildCompletionScreen('test', 0, 5, perfectStats, perfectFeedback, true);
+			const lines = buildCompletionScreen('test', 1, 5, 100, perfectStats, perfectFeedback, '★ Fullkomið!');
 
 			expect(lines.some(line => line.includes('FULLKOMIÐ'))).toBe(true);
 		});
 
 		it('should ask to continue when has next level', () => {
-			const lines = buildCompletionScreen('test', 0, 5, mockStats, mockFeedback, true);
+			const lines = buildCompletionScreen('test', 1, 5, 50, mockStats, mockFeedback, '◐ Gott! Reynum aftur');
 
 			expect(lines.some(line => line.includes('y/n'))).toBe(true);
 		});
 
 		it('should show completion message when no next level', () => {
-			const lines = buildCompletionScreen('test', 4, 5, mockStats, mockFeedback, false);
+			const lines = buildCompletionScreen('test', 5, 20, 25, mockStats, mockFeedback, '○ Reynum aftur');
 
-			expect(lines.some(line => line.includes('klárað öll stigin'))).toBe(true);
+			// Adaptive difficulty never ends, so this test should just check it shows continue prompt
+			expect(lines.some(line => line.includes('y/n'))).toBe(true);
 		});
 	});
 
