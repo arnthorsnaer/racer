@@ -108,7 +108,7 @@ const initializeLevel = (levelIndex: number) => {
 	targetLeft = levels[currentLevelIndex].target;
 	typedProgress = "";
 	lastFeedback = "";
-	board = new Array(19);
+	board = new Array(16);
 	errorCount = 0;
 	missedLetters = 0;
 	catchCount = 0;
@@ -122,7 +122,7 @@ const startGameLoop = () => {
 		clearInterval(gameInterval);
 	}
 
-	// Auto-progress game every half second (faster!)
+	// Auto-progress game every 400ms (20% faster than before!)
 	gameInterval = setInterval(() => {
 	// Generate new letter
 	const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
@@ -150,8 +150,8 @@ const startGameLoop = () => {
 	console.clear();
 	console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}\n`);
 	for (let i = 0; i < board.length; i++) {
-		// Always show the catch character at position 16
-		if (i === 16) {
+		// Always show the catch character at position 13
+		if (i === 13) {
 			if (board[i] !== undefined) {
 				const marker = board[i]!.success ? `${colors.brightGreen}✓` : `${colors.brightYellow}#`;
 				const letterColor = board[i]!.success ? colors.brightGreen : colors.brightMagenta;
@@ -160,15 +160,15 @@ const startGameLoop = () => {
 				// Show just the catch character even when no letter is there
 				console.log(`${colors.brightYellow}#${colors.reset}`);
 			}
-		} else if (i < 16) {
-			// Only render positions before the catch line (0-15)
+		} else if (i < 13) {
+			// Only render positions before the catch line (0-12)
 			if (board[i] !== undefined) {
 				console.log(`${colors.cyan}${board[i]!.generated}${colors.reset}`);
 			} else {
 				console.log('');
 			}
 		}
-		// Skip positions after the catch line (17-18) to eliminate spacing
+		// Skip positions after the catch line (14-15) to eliminate spacing
 	}
 
 	// Show progress with typed part and remaining part
@@ -183,7 +183,7 @@ const startGameLoop = () => {
 	if (lastFeedback) {
 		console.log(lastFeedback);
 	}
-	}, 500);
+	}, 400);
 };
 
 process.stdin.on('keypress', (ch: string, key: Key) => {
@@ -245,14 +245,14 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 	const fullTarget = levels[currentLevelIndex].target;
 	const nextExpectedChar = fullTarget[typedProgress.length];
 
-	// Check if there's a letter at the selection line (position 16)
-	if (board[16] !== undefined && board[16].generated) {
-		const letterAtSelection = board[16].generated;
+	// Check if there's a letter at the selection line (position 13)
+	if (board[13] !== undefined && board[13].generated) {
+		const letterAtSelection = board[13].generated;
 
 		// Check if pressed key matches the letter at selection AND it's the next expected character
 		if (pickedChar.toLowerCase() === letterAtSelection.toLowerCase() && letterAtSelection.toLowerCase() === nextExpectedChar.toLowerCase()) {
 			// Success! Caught the right letter
-			board[16].success = true;
+			board[13].success = true;
 			typedProgress += letterAtSelection;
 			lastFeedback = `${colors.brightGreen}✓ Náðir '${letterAtSelection}'! Frábært!${colors.reset}`;
 
@@ -328,13 +328,13 @@ console.log(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR
 console.log(`${colors.bright}Stig 1/${levels.length}${colors.reset}`);
 console.log(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}`);
 console.log(`\n${colors.cyan}Stjórnun:${colors.reset}`);
-console.log(`  ${colors.green}- Stafir birtast sjálfkrafa á hálfs sekúndu fresti${colors.reset}`);
+console.log(`  ${colors.green}- Stafir birtast sjálfkrafa á 0.4 sekúndu fresti${colors.reset}`);
 console.log(`  ${colors.green}- Ýttu á stafatakka til að velja þá${colors.reset}`);
 console.log(`  ${colors.green}- Ýttu á F1 til að kveikja/slökkva á hljóði${colors.reset}`);
 console.log(`  ${colors.green}- Ýttu á Ctrl+C til að hætta${colors.reset}\n`);
 console.log(`${colors.magenta}--- Borð ---${colors.reset}`);
 for (let i = 0; i < board.length; i++) {
-	if (i === 16) {
+	if (i === 13) {
 		console.log(`${colors.brightYellow}# (vallína)${colors.reset}`);
 	} else {
 		console.log('');
