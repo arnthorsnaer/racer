@@ -85,12 +85,12 @@ process.stdin.setEncoding('utf8');
 // Track current level
 let currentLevelIndex: number = 0;
 
-let splitWord: string[];
-let bagOfChars: string[];
-let targetLeft: string;
+let splitWord!: string[];
+let bagOfChars!: string[];
+let targetLeft!: string;
 let typedProgress: string = ""; // Track what's been typed successfully
 let lastFeedback: string = ""; // Track feedback from last key press
-let board: (BoardItem | undefined)[];
+let board!: (BoardItem | undefined)[];
 
 // Performance tracking
 let errorCount: number = 0; // Track wrong key presses
