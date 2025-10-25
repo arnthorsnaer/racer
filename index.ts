@@ -13,9 +13,13 @@ const player = playSound({});
 let soundEnabled = true;
 
 // ANSI Color codes for terminal styling
+// Theme: "Arcade Neon" - Inspired by Synthwave/Dracula CLI themes
 const colors = {
 	reset: '\x1b[0m',
 	bright: '\x1b[1m',
+	dim: '\x1b[2m',
+
+	// Raw ANSI colors
 	red: '\x1b[31m',
 	green: '\x1b[32m',
 	yellow: '\x1b[33m',
@@ -27,7 +31,18 @@ const colors = {
 	brightYellow: '\x1b[93m',
 	brightBlue: '\x1b[94m',
 	brightMagenta: '\x1b[95m',
-	brightCyan: '\x1b[96m'
+	brightCyan: '\x1b[96m',
+
+	// Semantic theme colors (Arcade Neon palette)
+	neonPink: '\x1b[95m',        // Bright Magenta - Headers, celebration
+	electricCyan: '\x1b[96m',    // Bright Cyan - Success, progress typed
+	limeGreen: '\x1b[92m',       // Bright Green - Positive feedback
+	sunsetOrange: '\x1b[93m',    // Bright Yellow - Progress remaining, attention
+	hotPink: '\x1b[91m',         // Bright Red - Errors
+	deepPurple: '\x1b[35m',      // Magenta - Subtle accents
+	electricBlue: '\x1b[94m',    // Bright Blue - Frame, structure
+	arcadeGreen: '\x1b[32m',     // Green - Info text
+	neonCyan: '\x1b[36m'         // Cyan - Stream letters
 } as const;
 
 // Frame characters for Tetris-style border
@@ -57,7 +72,7 @@ const createFramedLine = (content: string, width: number, leftPadding: number): 
 	// Strip ANSI codes to measure actual content length
 	const strippedContent = content.replace(/\x1b\[[0-9;]*m/g, '');
 	const contentPadding = ' '.repeat(Math.max(0, width - strippedContent.length - 2));
-	return `${padding}${colors.brightBlue}${frame.vertical}${colors.reset} ${content}${contentPadding}${colors.brightBlue}${frame.vertical}${colors.reset}`;
+	return `${padding}${colors.deepPurple}${frame.vertical}${colors.reset} ${content}${contentPadding}${colors.deepPurple}${frame.vertical}${colors.reset}`;
 };
 
 // Helper function to create horizontal border
@@ -66,7 +81,7 @@ const createHorizontalBorder = (width: number, leftPadding: number, isTop: boole
 	const leftChar = isTop ? frame.topLeft : frame.bottomLeft;
 	const rightChar = isTop ? frame.topRight : frame.bottomRight;
 	const line = frame.horizontal.repeat(width);
-	return `${padding}${colors.brightBlue}${leftChar}${line}${rightChar}${colors.reset}`;
+	return `${padding}${colors.deepPurple}${leftChar}${line}${rightChar}${colors.reset}`;
 };
 
 interface BoardItem {
@@ -248,24 +263,24 @@ const startGameLoop = () => {
 
 	// Build content lines first
 	const lines: string[] = [];
-	lines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 	lines.push('');
 
 	for (let i = 0; i < board.length; i++) {
 		// Always show the catch character at position 13
 		if (i === 13) {
 			if (board[i] !== undefined) {
-				const marker = board[i]!.success ? `${colors.brightGreen}✓` : `${colors.brightYellow}#`;
-				const letterColor = board[i]!.success ? colors.brightGreen : colors.brightMagenta;
+				const marker = board[i]!.success ? `${colors.limeGreen}✓` : `${colors.sunsetOrange}▶`;
+				const letterColor = board[i]!.success ? colors.limeGreen : colors.electricCyan;
 				lines.push(`${marker}${letterColor}${board[i]!.generated}${colors.reset}`);
 			} else {
 				// Show just the catch character even when no letter is there
-				lines.push(`${colors.brightYellow}#${colors.reset}`);
+				lines.push(`${colors.sunsetOrange}▶${colors.reset}`);
 			}
 		} else if (i < 13) {
 			// Only render positions before the catch line (0-12)
 			if (board[i] !== undefined) {
-				lines.push(`${colors.cyan}${board[i]!.generated}${colors.reset}`);
+				lines.push(`${colors.neonCyan}${board[i]!.generated}${colors.reset}`);
 			} else {
 				lines.push('');
 			}
@@ -279,10 +294,10 @@ const startGameLoop = () => {
 	const fullTarget = levels[actualLevelIndex].target;
 	const remaining = fullTarget.substring(typedProgress.length);
 	lines.push('');
-	lines.push(`${colors.bright}${colors.brightGreen}[${typedProgress}]${colors.brightYellow}${remaining}${colors.reset}`);
+	lines.push(`${colors.bright}${colors.electricCyan}[${typedProgress}]${colors.dim}${colors.sunsetOrange}${remaining}${colors.reset}`);
 
 	// Show current performance stats
-	lines.push(`${colors.brightYellow}Villur: ${colors.brightRed}${errorCount}${colors.reset}  ${colors.brightYellow}Missir: ${colors.brightRed}${missedLetters}${colors.reset}`);
+	lines.push(`${colors.neonPink}Villur: ${colors.hotPink}${errorCount}${colors.reset}  ${colors.neonPink}Missir: ${colors.hotPink}${missedLetters}${colors.reset}`);
 
 	// Show feedback from last action
 	if (lastFeedback) {
@@ -330,12 +345,12 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 				console.clear();
 
 				const nextLevelLines: string[] = [];
-				nextLevelLines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+				nextLevelLines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 				nextLevelLines.push('');
-				nextLevelLines.push(`${colors.bright}Stig ${currentLevelIndex + 1}/${levels.length}${colors.reset}`);
-				nextLevelLines.push(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}`);
+				nextLevelLines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevelIndex + 1}/${levels.length}${colors.reset}`);
+				nextLevelLines.push(`${colors.bright}Markmiðsorð: ${colors.sunsetOrange}${targetLeft}${colors.reset}`);
 				nextLevelLines.push('');
-				nextLevelLines.push(`${colors.brightGreen}Leikur byrjar...${colors.reset}`);
+				nextLevelLines.push(`${colors.limeGreen}Leikur byrjar...${colors.reset}`);
 
 				const frameWidth = 50;
 				const contentHeight = nextLevelLines.length + 2;
@@ -357,10 +372,10 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 				console.clear();
 
 				const allCompleteLines: string[] = [];
-				allCompleteLines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+				allCompleteLines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 				allCompleteLines.push('');
-				allCompleteLines.push(`${colors.bright}${colors.brightMagenta}🎊 TIL HAMINGJU! 🎊${colors.reset}`);
-				allCompleteLines.push(`${colors.brightGreen}Þú hefur klárað öll ${levels.length} stigin!${colors.reset}`);
+				allCompleteLines.push(`${colors.bright}${colors.neonPink}★ TIL HAMINGJU! ★${colors.reset}`);
+				allCompleteLines.push(`${colors.limeGreen}Þú hefur klárað öll ${levels.length} stigin!${colors.reset}`);
 
 				const frameWidth = 50;
 				const contentHeight = allCompleteLines.length + 2;
@@ -382,9 +397,9 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 			console.clear();
 
 			const goodbyeLines: string[] = [];
-			goodbyeLines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+			goodbyeLines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 			goodbyeLines.push('');
-			goodbyeLines.push(`${colors.brightCyan}Takk fyrir að spila!${colors.reset}`);
+			goodbyeLines.push(`${colors.electricCyan}Takk fyrir að spila!${colors.reset}`);
 
 			const frameWidth = 50;
 			const contentHeight = goodbyeLines.length + 2;
@@ -409,8 +424,8 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 	if (key && key.name === 'f1') {
 		soundEnabled = !soundEnabled;
 		lastFeedback = soundEnabled
-			? `${colors.brightCyan}🔊 Hljóð á${colors.reset}`
-			: `${colors.brightCyan}🔇 Hljóð af${colors.reset}`;
+			? `${colors.electricCyan}♪ Hljóð á${colors.reset}`
+			: `${colors.deepPurple}♪ Hljóð af${colors.reset}`;
 		return;
 	}
 
@@ -440,7 +455,7 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 			// Success! Caught the right letter
 			board[13].success = true;
 			typedProgress += letterAtSelection;
-			lastFeedback = `${colors.brightGreen}✓ Náðir '${letterAtSelection}'! Frábært!${colors.reset}`;
+			lastFeedback = `${colors.limeGreen}★ Náðir '${letterAtSelection}'! Frábært!${colors.reset}`;
 
 			// FR-001 & FR-002: Regenerate bag after each successful catch
 			// This updates probabilities for the NEXT letter and removes letters no longer needed
@@ -458,32 +473,32 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 
 				// Build completion screen
 				const completionLines: string[] = [];
-				completionLines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+				completionLines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 				completionLines.push('');
-				completionLines.push(`${colors.bright}${colors.brightMagenta}🎉 TIL HAMINGJU! Þú kláraðir orðið: ${colors.brightYellow}${fullTarget}${colors.reset}`);
-				completionLines.push(`${colors.bright}Stig ${currentLevelIndex + 1}/${levels.length} lokið!${colors.reset}`);
+				completionLines.push(`${colors.bright}${colors.neonPink}★ TIL HAMINGJU! Þú kláraðir orðið: ${colors.sunsetOrange}${fullTarget}${colors.reset}`);
+				completionLines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevelIndex + 1}/${levels.length} lokið!${colors.reset}`);
 				completionLines.push('');
 
 				// Display performance stats
 				const isPerfect = errorCount === 0 && missedLetters === 0;
 
-				completionLines.push(`${colors.bright}${colors.brightCyan}=== STATTAR ===${colors.reset}`);
+				completionLines.push(`${colors.bright}${colors.electricCyan}▓▒░ STATTAR ░▒▓${colors.reset}`);
 				completionLines.push('');
 
 				if (isPerfect) {
-					completionLines.push(`${colors.bright}${colors.brightGreen}★ FULLKOMIÐ! ★${colors.reset}`);
-					completionLines.push(`${colors.brightGreen}Engar villur og náðir hverjum staf í fyrstu tilraun!${colors.reset}`);
+					completionLines.push(`${colors.bright}${colors.limeGreen}★ FULLKOMIÐ! ★${colors.reset}`);
+					completionLines.push(`${colors.limeGreen}Engar villur og náðir hverjum staf í fyrstu tilraun!${colors.reset}`);
 				} else {
-					completionLines.push(`${colors.brightYellow}Villur (rangar lyklar): ${colors.brightRed}${errorCount}${colors.reset}`);
-					completionLines.push(`${colors.brightYellow}Missaðir stafir: ${colors.brightRed}${missedLetters}${colors.reset}`);
+					completionLines.push(`${colors.neonPink}Villur (rangar lyklar): ${colors.hotPink}${errorCount}${colors.reset}`);
+					completionLines.push(`${colors.neonPink}Missaðir stafir: ${colors.hotPink}${missedLetters}${colors.reset}`);
 					completionLines.push('');
 
 					if (errorCount === 0 && missedLetters > 0) {
-						completionLines.push(`${colors.cyan}Frábær nákvæmni! Reyndu að ná stöfum hraðar næst.${colors.reset}`);
+						completionLines.push(`${colors.electricCyan}Frábær nákvæmni! Reyndu að ná stöfum hraðar næst.${colors.reset}`);
 					} else if (errorCount > 0 && missedLetters === 0) {
-						completionLines.push(`${colors.cyan}Fullkomin skilvirkni! Einbeittu þér að því að fækka villum.${colors.reset}`);
+						completionLines.push(`${colors.electricCyan}Fullkomin skilvirkni! Einbeittu þér að því að fækka villum.${colors.reset}`);
 					} else {
-						completionLines.push(`${colors.cyan}Haltu áfram að æfa til að ná fullkomnum árangri!${colors.reset}`);
+						completionLines.push(`${colors.electricCyan}Haltu áfram að æfa til að ná fullkomnum árangri!${colors.reset}`);
 					}
 				}
 
@@ -493,12 +508,12 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 				// Ask if user wants to continue to next level
 				if (currentLevelIndex + 1 < levels.length) {
 					completionLines.push('');
-					completionLines.push(`${colors.bright}${colors.brightYellow}Viltu halda áfram í næsta stig? (y/n)${colors.reset}`);
+					completionLines.push(`${colors.bright}${colors.sunsetOrange}Viltu halda áfram í næsta stig? (y/n)${colors.reset}`);
 					isWaitingForLevelChoice = true;
 				} else {
 					// Last level completed
 					completionLines.push('');
-					completionLines.push(`${colors.bright}${colors.brightMagenta}🎊 Þú hefur klárað öll stigin! 🎊${colors.reset}`);
+					completionLines.push(`${colors.bright}${colors.neonPink}★ Þú hefur klárað öll stigin! ★${colors.reset}`);
 				}
 
 				// Render with frame
@@ -523,16 +538,16 @@ process.stdin.on('keypress', (ch: string, key: Key) => {
 		} else if (pickedChar.toLowerCase() === letterAtSelection.toLowerCase()) {
 			// Letter matches but it's not the next expected character
 			errorCount++;
-			lastFeedback = `${colors.brightRed}✗ Rangur stafur! Þarft '${nextExpectedChar}', fékk '${letterAtSelection}'${colors.reset}`;
+			lastFeedback = `${colors.hotPink}✗ Rangur stafur! Þarft '${nextExpectedChar}', fékk '${letterAtSelection}'${colors.reset}`;
 			playGameSound('error');
 		} else {
 			// Pressed key doesn't match the letter at selection
 			errorCount++;
-			lastFeedback = `${colors.brightRed}✗ Missir! Ýttir á '${pickedChar}' en valið sýnir '${letterAtSelection}'${colors.reset}`;
+			lastFeedback = `${colors.hotPink}✗ Missir! Ýttir á '${pickedChar}' en valið sýnir '${letterAtSelection}'${colors.reset}`;
 			playGameSound('error');
 		}
 	} else {
-		lastFeedback = `${colors.red}✗ Enginn stafur á vallínu!${colors.reset}`;
+		lastFeedback = `${colors.hotPink}✗ Enginn stafur á vallínu!${colors.reset}`;
 	}
 });
 
@@ -543,27 +558,27 @@ initializeLevel(0);
 console.clear();
 
 const initialLines: string[] = [];
-initialLines.push(`${colors.bright}${colors.brightCyan}=== ÍSLENSKUR STAFA-KAPPAKSTUR ===${colors.reset}`);
+initialLines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 initialLines.push('');
-initialLines.push(`${colors.bright}Stig 1/${levels.length}${colors.reset}`);
-initialLines.push(`${colors.bright}Markmiðsorð: ${colors.brightYellow}${targetLeft}${colors.reset}`);
+initialLines.push(`${colors.bright}${colors.electricBlue}Stig 1/${levels.length}${colors.reset}`);
+initialLines.push(`${colors.bright}Markmiðsorð: ${colors.sunsetOrange}${targetLeft}${colors.reset}`);
 initialLines.push('');
-initialLines.push(`${colors.cyan}Stjórnun:${colors.reset}`);
-initialLines.push(`  ${colors.green}- Stafir birtast sjálfkrafa á 0.4 sekúndu fresti${colors.reset}`);
-initialLines.push(`  ${colors.green}- Ýttu á stafatakka til að velja þá${colors.reset}`);
-initialLines.push(`  ${colors.green}- Ýttu á F1 til að kveikja/slökkva á hljóði${colors.reset}`);
-initialLines.push(`  ${colors.green}- Ýttu á Ctrl+C til að hætta${colors.reset}`);
+initialLines.push(`${colors.electricCyan}Stjórnun:${colors.reset}`);
+initialLines.push(`  ${colors.arcadeGreen}▶ Stafir birtast sjálfkrafa á 0.4 sekúndu fresti${colors.reset}`);
+initialLines.push(`  ${colors.arcadeGreen}▶ Ýttu á stafatakka til að velja þá${colors.reset}`);
+initialLines.push(`  ${colors.arcadeGreen}▶ Ýttu á F1 til að kveikja/slökkva á hljóði${colors.reset}`);
+initialLines.push(`  ${colors.arcadeGreen}▶ Ýttu á Ctrl+C til að hætta${colors.reset}`);
 initialLines.push('');
-initialLines.push(`${colors.magenta}--- Borð ---${colors.reset}`);
+initialLines.push(`${colors.neonPink}━━━ Borð ━━━${colors.reset}`);
 for (let i = 0; i < board.length; i++) {
 	if (i === 13) {
-		initialLines.push(`${colors.brightYellow}# (vallína)${colors.reset}`);
+		initialLines.push(`${colors.sunsetOrange}▶ (vallína)${colors.reset}`);
 	} else {
 		initialLines.push('');
 	}
 }
 initialLines.push('');
-initialLines.push(`${colors.brightGreen}Leikur byrjar...${colors.reset}`);
+initialLines.push(`${colors.limeGreen}Leikur byrjar...${colors.reset}`);
 
 const frameWidth = 50;
 const contentHeight = initialLines.length + 2;
