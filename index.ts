@@ -274,22 +274,7 @@ const main = (): void => {
 	// Initialize first word
 	initializeWord();
 
-	// Calculate initial values for display
-	const currentLevel = getLevelFromWordLength(difficultyState.currentWordLength);
-	const currentScore = calculateScore(currentLevel, difficultyState.completedWords);
-
-	// Show welcome screen
-	const lines = buildWelcomeScreen(
-		currentTarget,
-		currentLevel,
-		difficultyState.completedWords,
-		currentScore,
-		gameState.board.length,
-		CATCH_LINE_POSITION
-	);
-	renderScreen(lines);
-
-	// Start the game loop
+	// Start the game loop immediately (no welcome screen)
 	startGameLoop();
 };
 
