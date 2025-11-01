@@ -73,11 +73,21 @@ async function runDemo() {
   await new Promise(resolve => setTimeout(resolve, DEMO_DURATION));
 
   console.log('\x1b[1;32m✓ Demo complete!\x1b[0m');
+  console.log('');
+
+  // Small delay to ensure recording captures everything
+  await new Promise(resolve => setTimeout(resolve, 500));
 }
 
 // Run the demo and handle any errors
 runDemo()
-  .then(() => process.exit(0))
+  .then(() => {
+    // Force flush output buffers
+    if (process.stdout.isTTY) {
+      process.stdout.write('');
+    }
+    process.exit(0);
+  })
   .catch((error) => {
     console.error('\x1b[1;31mDemo error:\x1b[0m', error);
     process.exit(1);
