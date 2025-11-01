@@ -27,9 +27,8 @@ jobs:
 
       - name: Install recording tools
         run: |
-          # Install asciinema for recording
-          sudo apt-get update
-          sudo apt-get install -y asciinema
+          # Install asciinema via pip (much faster than apt-get)
+          pip install asciinema
 
           # Install svg-term-cli for converting to SVG
           npm install -g svg-term-cli
