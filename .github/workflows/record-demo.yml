@@ -11,6 +11,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -89,9 +92,13 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+
+          # Verify we're on the right branch
+          git branch --show-current
+
           git add demo.svg
           git commit -m "Update demo.svg recording [skip ci]" || echo "No changes to commit"
-          git push
+          git push origin HEAD:${{ github.head_ref }}
 
       - name: Upload demo artifact (backup)
         uses: actions/upload-artifact@v4
