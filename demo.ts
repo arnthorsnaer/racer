@@ -2,93 +2,210 @@
 /**
  * Automated demo script for Racer
  *
- * This script displays information about the Racer typing game
- * without requiring user interaction. Perfect for:
- * - GitHub Actions workflow recordings
- * - Automated demonstrations
- * - CI/CD screenshots
+ * This script demonstrates the actual game running with automated gameplay.
+ * Perfect for GitHub Actions workflow recordings and demonstrations.
  *
  * Usage:
  *   bun run demo.ts
- *   node --loader ts-node/esm demo.ts
  */
 
-const DEMO_DURATION = 5000; // 5 seconds
+import words from './words.js';
+import { colors } from './src/presentation/theme.js';
+import {
+	renderWithFrame,
+	buildGameScreen,
+} from './src/presentation/formatters.js';
+import {
+	filterSingleWords,
+	organizeWordsByLength,
+	selectWordAtLength,
+	type WordsByLength,
+} from './src/core/word-pool.js';
+import {
+	generateBagOfChars,
+} from './src/core/word-generation.js';
+import {
+	createInitialGameState,
+	updateBoardWithNewChar,
+	processKeypress,
+	CATCH_LINE_POSITION,
+	type GameState,
+} from './src/core/game-logic.js';
+
+// Demo configuration
+const FRAME_WIDTH = 50;
+const GAME_TICK_INTERVAL = 500; // ms - slightly faster for demo
+const DEMO_DURATION = 18000; // 18 seconds total demo
+const AUTO_TYPE_INTERVAL = 800; // ms - auto-type every 800ms
+
+// Initialize word pool
+const singleWordLevels = filterSingleWords(words);
+const wordsByLength: WordsByLength = organizeWordsByLength(singleWordLevels);
+
+// Game state
+let gameState: GameState = createInitialGameState();
+let bagOfChars: string[] = [];
+let currentTarget: string = '';
+let lastFeedback: string = '';
+let completedWords: number = 0;
+let currentWordLength: number = 7; // Start with medium difficulty word
 
 /**
- * Display a formatted banner with game information
+ * Select and initialize a new word
+ */
+const initializeWord = (): void => {
+	const selectedWord = selectWordAtLength(wordsByLength, currentWordLength, new Set());
+
+	if (!selectedWord) {
+		currentTarget = 'Racer';
+		console.error('No word found, using fallback');
+	} else {
+		currentTarget = selectedWord;
+	}
+
+	gameState = createInitialGameState();
+	bagOfChars = generateBagOfChars(gameState.typedProgress, currentTarget);
+	lastFeedback = `${colors.limeGreen}★ Byrjum leik!${colors.reset}`;
+};
+
+/**
+ * Render the game screen
+ */
+const renderScreen = (): void => {
+	const termWidth = 80;
+	const termHeight = 24;
+
+	const lines = buildGameScreen(
+		gameState,
+		currentTarget,
+		1, // level
+		completedWords,
+		completedWords * 100, // simple score
+		lastFeedback,
+		CATCH_LINE_POSITION
+	);
+
+	const output = renderWithFrame(lines, FRAME_WIDTH, termWidth, termHeight);
+
+	console.clear();
+	output.forEach(line => console.log(line));
+};
+
+/**
+ * Automated typing - catches letters automatically
+ */
+const autoType = (): void => {
+	const nextExpectedChar = currentTarget[gameState.typedProgress.length];
+	const itemAtCatchLine = gameState.board[CATCH_LINE_POSITION];
+
+	// Only type if there's a letter at the catch line that matches what we need
+	if (itemAtCatchLine && itemAtCatchLine.generated) {
+		const letterAtCatch = itemAtCatchLine.generated;
+
+		if (letterAtCatch.toLowerCase() === nextExpectedChar.toLowerCase()) {
+			// Type the correct letter
+			const result = processKeypress(letterAtCatch, gameState, currentTarget);
+			gameState = result.newState;
+			lastFeedback = result.feedbackType === 'success'
+				? `${colors.limeGreen}${result.feedback}${colors.reset}`
+				: `${colors.hotPink}${result.feedback}${colors.reset}`;
+
+			// Regenerate bag for next letter
+			if (result.feedbackType === 'success') {
+				bagOfChars = generateBagOfChars(gameState.typedProgress, currentTarget);
+			}
+
+			// Check if word is complete
+			if (result.isLevelComplete) {
+				completedWords++;
+				lastFeedback = `${colors.limeGreen}★★★ Orð lokið! "${currentTarget}" ★★★${colors.reset}`;
+
+				// Start a new word after a brief pause
+				setTimeout(() => {
+					initializeWord();
+				}, 1000);
+			}
+		}
+	}
+};
+
+/**
+ * Game tick - add new falling letter
+ */
+const gameTick = (): void => {
+	// Generate new character
+	const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
+
+	// Update board with new character
+	gameState = updateBoardWithNewChar(gameState, generatedChar, currentTarget);
+
+	// Render
+	renderScreen();
+};
+
+/**
+ * Run the automated demo
  */
 async function runDemo() {
-  console.clear();
+	console.clear();
 
-  // Display banner with colors
-  console.log('\x1b[1;36m╔════════════════════════════════════════╗\x1b[0m');
-  console.log('\x1b[1;36m║                                        ║\x1b[0m');
-  console.log('\x1b[1;36m║         \x1b[1;33mRACER - Typing Game\x1b[1;36m         ║\x1b[0m');
-  console.log('\x1b[1;36m║                                        ║\x1b[0m');
-  console.log('\x1b[1;36m╚════════════════════════════════════════╝\x1b[0m');
-  console.log('');
-  console.log('\x1b[1;32m✨ Welcome to Racer! ✨\x1b[0m');
-  console.log('');
-  console.log('An interactive terminal typing game designed');
-  console.log('for learning the Icelandic alphabet.');
-  console.log('');
+	// Show initial title screen
+	console.log('\x1b[1;36m╔════════════════════════════════════════╗\x1b[0m');
+	console.log('\x1b[1;36m║                                        ║\x1b[0m');
+	console.log('\x1b[1;36m║         \x1b[1;33mRACER - Typing Game\x1b[1;36m         ║\x1b[0m');
+	console.log('\x1b[1;36m║                                        ║\x1b[0m');
+	console.log('\x1b[1;36m╚════════════════════════════════════════╝\x1b[0m');
+	console.log('');
+	console.log('\x1b[1;32m✨ Automated Demo Starting... ✨\x1b[0m');
+	console.log('');
 
-  console.log('\x1b[1;33m🎮 Features:\x1b[0m');
-  console.log('  • Full Icelandic alphabet support');
-  console.log('    (á, ð, é, í, ó, ú, ý, þ, æ, ö)');
-  console.log('  • Multiple difficulty levels');
-  console.log('  • Real-time character matching');
-  console.log('  • Sound effects and scoring system');
-  console.log('  • Adaptive difficulty progression');
-  console.log('  • Performance statistics tracking');
-  console.log('');
+	await new Promise(resolve => setTimeout(resolve, 2000));
 
-  console.log('\x1b[1;33m⌨️  Controls:\x1b[0m');
-  console.log('  • Type characters to match falling letters');
-  console.log('  • F1 - Toggle sound on/off');
-  console.log('  • Ctrl+C - Quit game');
-  console.log('  • Y/N - Continue or end after completing word');
-  console.log('');
+	// Initialize first word
+	initializeWord();
+	renderScreen();
 
-  console.log('\x1b[1;33m🚀 Quick Start:\x1b[0m');
-  console.log('  \x1b[36mnpm install\x1b[0m          # Install dependencies');
-  console.log('  \x1b[36mnpm start\x1b[0m            # Start the game');
-  console.log('  \x1b[2m# or\x1b[0m');
-  console.log('  \x1b[36mbun run index.ts\x1b[0m     # Run with Bun');
-  console.log('');
+	// Start game loop
+	const gameInterval = setInterval(gameTick, GAME_TICK_INTERVAL);
 
-  console.log('\x1b[1;33m📦 Project Info:\x1b[0m');
-  console.log('  • Language: TypeScript');
-  console.log('  • Runtime: Node.js / Bun');
-  console.log('  • Testing: Vitest');
-  console.log('  • Architecture: Clean/Hexagonal');
-  console.log('');
+	// Start auto-typing
+	const autoTypeInterval = setInterval(autoType, AUTO_TYPE_INTERVAL);
 
-  console.log('\x1b[2m─────────────────────────────────────────\x1b[0m');
-  console.log('\x1b[2mDemo recording • Generated by GitHub Actions\x1b[0m');
-  console.log('');
+	// Run for demo duration
+	await new Promise(resolve => setTimeout(resolve, DEMO_DURATION));
 
-  // Keep output visible for the specified duration
-  await new Promise(resolve => setTimeout(resolve, DEMO_DURATION));
+	// Clean up
+	clearInterval(gameInterval);
+	clearInterval(autoTypeInterval);
 
-  console.log('\x1b[1;32m✓ Demo complete!\x1b[0m');
-  console.log('');
+	// Show final screen
+	console.clear();
+	console.log('\x1b[1;36m╔════════════════════════════════════════╗\x1b[0m');
+	console.log('\x1b[1;36m║                                        ║\x1b[0m');
+	console.log('\x1b[1;36m║         \x1b[1;33mRACER - Typing Game\x1b[1;36m         ║\x1b[0m');
+	console.log('\x1b[1;36m║                                        ║\x1b[0m');
+	console.log('\x1b[1;36m╚════════════════════════════════════════╝\x1b[0m');
+	console.log('');
+	console.log(`\x1b[1;32m✓ Demo Complete!\x1b[0m`);
+	console.log('');
+	console.log(`\x1b[1;33m📊 Demo Stats:\x1b[0m`);
+	console.log(`  • Words completed: ${completedWords}`);
+	console.log(`  • Errors: ${gameState.errorCount}`);
+	console.log(`  • Missed letters: ${gameState.missedLetters}`);
+	console.log('');
+	console.log('\x1b[1;33m🚀 Try it yourself:\x1b[0m');
+	console.log('  \x1b[36mnpm install && npm start\x1b[0m');
+	console.log('');
 
-  // Small delay to ensure recording captures everything
-  await new Promise(resolve => setTimeout(resolve, 500));
+	await new Promise(resolve => setTimeout(resolve, 2000));
 }
 
-// Run the demo and handle any errors
+// Run the demo
 runDemo()
-  .then(() => {
-    // Force flush output buffers
-    if (process.stdout.isTTY) {
-      process.stdout.write('');
-    }
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('\x1b[1;31mDemo error:\x1b[0m', error);
-    process.exit(1);
-  });
+	.then(() => {
+		process.exit(0);
+	})
+	.catch((error) => {
+		console.error('\x1b[1;31mDemo error:\x1b[0m', error);
+		process.exit(1);
+	});
