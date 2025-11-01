@@ -33,8 +33,11 @@ jobs:
           # Install asciinema via pip (much faster than apt-get)
           pip install asciinema
 
-          # Install svg-term-cli for converting to SVG
-          npm install -g svg-term-cli
+          # Download agg (asciinema gif generator) pre-built binary
+          # This creates animated GIFs that work everywhere
+          curl -L https://github.com/asciinema/agg/releases/latest/download/agg-x86_64-unknown-linux-gnu -o /tmp/agg
+          chmod +x /tmp/agg
+          sudo mv /tmp/agg /usr/local/bin/agg
 
       - name: Create recording wrapper script
         run: |
@@ -68,27 +71,27 @@ jobs:
           ls -lh demo.cast
         timeout-minutes: 1
 
-      - name: Convert to SVG
+      - name: Convert to animated GIF
         run: |
-          # Convert asciinema recording to SVG
-          echo "Converting to SVG..."
-          cat demo.cast | svg-term --out demo.svg --window --width 80 --height 24
+          # Convert asciinema recording to animated GIF
+          echo "Converting to animated GIF..."
+          agg demo.cast demo.gif --cols 80 --rows 24
 
           echo "Conversion complete"
-          ls -lh demo.svg
+          ls -lh demo.gif
         timeout-minutes: 1
 
-      - name: Verify demo.svg was created
+      - name: Verify demo.gif was created
         run: |
-          if [ -f demo.svg ]; then
+          if [ -f demo.gif ]; then
             echo "✅ Demo recording created successfully"
-            ls -lh demo.svg
+            ls -lh demo.gif
           else
-            echo "❌ Failed to create demo.svg"
+            echo "❌ Failed to create demo.gif"
             exit 1
           fi
 
-      - name: Commit demo.svg to PR branch
+      - name: Commit demo.gif to PR branch
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -96,15 +99,15 @@ jobs:
           # Verify we're on the right branch
           git branch --show-current
 
-          git add demo.svg
-          git commit -m "Update demo.svg recording [skip ci]" || echo "No changes to commit"
+          git add demo.gif
+          git commit -m "Update demo.gif recording [skip ci]" || echo "No changes to commit"
           git push origin HEAD:${{ github.head_ref }}
 
       - name: Upload demo artifact (backup)
         uses: actions/upload-artifact@v4
         with:
           name: demo-recording
-          path: demo.svg
+          path: demo.gif
           retention-days: 30
 
       - name: Comment on PR with inline demo
@@ -116,27 +119,27 @@ jobs:
             const sha = context.sha;
             const branch = context.payload.pull_request.head.ref;
 
-            // Construct the raw URL for the SVG file
-            const svgUrl = `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/${branch}/demo.svg`;
+            // Construct the raw URL for the GIF file
+            const gifUrl = `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/${branch}/demo.gif`;
 
             const comment = `## 🎬 Demo Recording
 
-            ![Racer Demo](${svgUrl})
+            ![Racer Demo](${gifUrl})
 
             ---
 
             <details>
             <summary>📖 About this demo</summary>
 
-            This animated terminal recording shows the Racer typing game interface.
+            This animated GIF shows the Racer typing game interface in action.
             The demo is automatically generated on every PR update.
 
             **🔗 Quick Links:**
-            - [View demo.svg file](https://github.com/${repo.owner}/${repo.repo}/blob/${branch}/demo.svg)
-            - [Download raw SVG](${svgUrl})
+            - [View demo.gif file](https://github.com/${repo.owner}/${repo.repo}/blob/${branch}/demo.gif)
+            - [Download GIF](${gifUrl})
             - [View this commit](https://github.com/${repo.owner}/${repo.repo}/commit/${sha})
 
-            **ℹ️ Note:** If the image doesn't load immediately, refresh the page or click the raw SVG link above.
+            **ℹ️ Note:** GIFs animate automatically in GitHub - no clicking required!
 
             </details>
 
