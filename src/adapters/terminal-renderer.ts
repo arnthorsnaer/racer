@@ -1,0 +1,25 @@
+/**
+ * Terminal Renderer Adapter
+ * Wraps the existing terminal-adapter for use with the game orchestrator
+ */
+
+import type { Renderer } from '../core/game-orchestrator.js';
+import { createTerminalAdapter } from './terminal-adapter.js';
+
+export function createTerminalRenderer(): Renderer {
+	const terminal = createTerminalAdapter();
+
+	return {
+		clear(): void {
+			terminal.clear();
+		},
+
+		render(lines: string[]): void {
+			lines.forEach(line => terminal.log(line));
+		},
+
+		getDimensions(): { width: number; height: number } {
+			return terminal.getDimensions();
+		}
+	};
+}
