@@ -1,9 +1,9 @@
 /**
  * Terminal Renderer Adapter
- * Wraps the existing terminal-adapter for use with the game orchestrator
+ * Wraps the existing terminal-adapter for use with the game
  */
 
-import type { Renderer } from '../core/game-orchestrator.js';
+import type { Renderer } from '../core/game.js';
 import { createTerminalAdapter } from './terminal-adapter.js';
 
 export function createTerminalRenderer(): Renderer {

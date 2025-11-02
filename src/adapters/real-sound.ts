@@ -1,9 +1,9 @@
 /**
  * Real Sound Adapter
- * Wraps the existing sound-adapter for use with the game orchestrator
+ * Wraps the existing sound-adapter for use with the game
  */
 
-import type { SoundPlayer } from '../core/game-orchestrator.js';
+import type { SoundPlayer } from '../core/game.js';
 import { createSoundAdapter } from './sound-adapter.js';
 
 export function createRealSound(): SoundPlayer {
