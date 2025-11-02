@@ -10,7 +10,7 @@ interface ConsoleRendererOptions {
   height?: number;
 }
 
-export function createConsoleRenderer(options: ConsoleRendererOptions = {}): Renderer {
+export const createConsoleRenderer = (options: ConsoleRendererOptions = {}): Renderer => {
   const { width = 80, height = 24 } = options;
 
   return {
@@ -26,4 +26,4 @@ export function createConsoleRenderer(options: ConsoleRendererOptions = {}): Ren
       return { width, height };
     },
   };
-}
+};

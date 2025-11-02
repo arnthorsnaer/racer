@@ -5,10 +5,10 @@
 
 import type { SoundPlayer } from '../../src/types.ts';
 
-export function createNoopSound(): SoundPlayer {
+export const createNoopSound = (): SoundPlayer => {
   return {
     play(_soundName: string): void {
       // Do nothing - silent mode
     },
   };
-}
+};
