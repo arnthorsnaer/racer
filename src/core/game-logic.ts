@@ -63,7 +63,10 @@ export const updateBoardWithNewChar = (
 	if (catchLineItem !== undefined && catchLineItem.generated) {
 		const nextExpectedChar = fullTarget[state.typedProgress.length];
 		// If this letter was the next needed letter and wasn't caught, count as miss
-		if (catchLineItem.generated.toLowerCase() === nextExpectedChar.toLowerCase() && !catchLineItem.success) {
+		// Only check if we haven't completed the word yet
+		if (nextExpectedChar !== undefined &&
+			catchLineItem.generated.toLowerCase() === nextExpectedChar.toLowerCase() &&
+			!catchLineItem.success) {
 			newMissedLetters++;
 		}
 	}

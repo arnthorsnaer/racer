@@ -102,7 +102,7 @@ const autoType = (): void => {
 	const itemAtCatchLine = gameState.board[CATCH_LINE_POSITION];
 
 	// Only type if there's a letter at the catch line that matches what we need
-	if (itemAtCatchLine && itemAtCatchLine.generated) {
+	if (itemAtCatchLine && itemAtCatchLine.generated && nextExpectedChar !== undefined) {
 		const letterAtCatch = itemAtCatchLine.generated;
 
 		if (letterAtCatch.toLowerCase() === nextExpectedChar.toLowerCase()) {
