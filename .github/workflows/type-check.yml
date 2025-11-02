@@ -1,4 +1,4 @@
-name: Type Check
+name: CI
 
 on:
   push:
@@ -24,3 +24,6 @@ jobs:
 
       - name: Run type check
         run: bun run type-check
+
+      - name: Run tests
+        run: bun run test
