@@ -3,7 +3,7 @@
  * Silent sound player for demo mode
  */
 
-import type { SoundPlayer } from '../../src/core/game.js';
+import type { SoundPlayer } from '../../src/core/game.ts';
 
 export function createNoopSound(): SoundPlayer {
 	return {

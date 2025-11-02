@@ -9,12 +9,12 @@
  *   bun run demo/index.ts
  */
 
-import { startGame } from '../src/core/game.js';
-import { createAutoTypeInput } from './adapters/auto-type-input.js';
-import { createConsoleRenderer } from './adapters/console-renderer.js';
-import { createNoopSound } from './adapters/noop-sound.js';
-import { GAME_CONFIG } from '../src/config/game.js';
-import { CATCH_LINE_POSITION } from '../src/core/game-logic.js';
+import { startGame } from '../src/core/game.ts';
+import { createAutoTypeInput } from './adapters/auto-type-input.ts';
+import { createConsoleRenderer } from './adapters/console-renderer.ts';
+import { createNoopSound } from './adapters/noop-sound.ts';
+import { GAME_CONFIG } from '../src/config/game.ts';
+import { CATCH_LINE_POSITION } from '../src/core/game-logic.ts';
 
 /**
  * Run the automated demo

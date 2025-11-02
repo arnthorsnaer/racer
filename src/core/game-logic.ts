@@ -3,27 +3,10 @@
  * No side effects - fully testable without mocks
  */
 
-export interface BoardItem {
-	generated: string;
-	success: boolean;
-}
+import type { BoardItem, GameState, KeypressResult } from './types.ts';
 
-export interface GameState {
-	board: (BoardItem | undefined)[];
-	typedProgress: string;
-	errorCount: number;
-	missedLetters: number;
-	catchCount: number;
-	tickCount: number;
-}
-
-export interface KeypressResult {
-	newState: GameState;
-	feedback: string;
-	feedbackType: 'success' | 'error' | 'miss' | 'empty';
-	isLevelComplete: boolean;
-	shouldPlaySound: string | null;
-}
+// Re-export types for backwards compatibility
+export type { BoardItem, GameState, KeypressResult };
 
 /**
  * Constants for game configuration
@@ -110,6 +93,7 @@ export const processKeypress = (
 
 	// Success: Pressed key matches letter AND it's the next expected character
 	if (
+		nextExpectedChar &&
 		pressedChar.toLowerCase() === letterAtSelection.toLowerCase() &&
 		letterAtSelection.toLowerCase() === nextExpectedChar.toLowerCase()
 	) {

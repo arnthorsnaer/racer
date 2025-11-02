@@ -3,8 +3,8 @@
  * Wraps the existing terminal-adapter for use with the game
  */
 
-import type { Renderer } from '../core/game.js';
-import { createTerminalAdapter } from './terminal-adapter.js';
+import type { Renderer } from '../types.ts';
+import { createTerminalAdapter } from './terminal-adapter.ts';
 
 export function createTerminalRenderer(): Renderer {
 	const terminal = createTerminalAdapter();

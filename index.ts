@@ -4,10 +4,10 @@
  * Wires together adapters and core game logic
  */
 
-import { startGame } from './src/core/game.js';
-import { createKeyboardInput } from './src/adapters/keyboard-input.js';
-import { createTerminalRenderer } from './src/adapters/terminal-renderer.js';
-import { createRealSound } from './src/adapters/real-sound.js';
+import { startGame } from './src/core/game.ts';
+import { createKeyboardInput } from './src/adapters/keyboard-input.ts';
+import { createTerminalRenderer } from './src/adapters/terminal-renderer.ts';
+import { createRealSound } from './src/adapters/real-sound.ts';
 
 // Create adapters
 const inputSource = createKeyboardInput();

@@ -18,9 +18,9 @@ import {
 	buildNextLevelScreen,
 	buildGoodbyeScreen,
 	renderWithFrame,
-} from '../formatters.js';
-import type { GameState, BoardItem } from '../../core/game-logic.js';
-import type { PerformanceStats, FeedbackMessage } from '../../core/score-calculator.js';
+} from '../formatters.ts';
+import type { GameState, BoardItem } from '../../core/game-logic.ts';
+import type { PerformanceStats, FeedbackMessage } from '../../core/score-calculator.ts';
 
 describe('formatters', () => {
 	describe('getCenteringInfo', () => {

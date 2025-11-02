@@ -10,7 +10,7 @@ import {
 	hasNextLevel,
 	getNextLevelIndex,
 	type Level,
-} from '../level-progression.js';
+} from '../level-progression.ts';
 
 describe('level-progression', () => {
 	// Mock levels for testing

@@ -9,6 +9,7 @@
     "demo": "bun run demo/index.ts",
     "dev": "bun --watch index.ts",
     "type-check": "tsc --noEmit",
+    "check": "npm run type-check && npm run test:run",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",

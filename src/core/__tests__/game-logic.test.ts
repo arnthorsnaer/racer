@@ -10,7 +10,7 @@ import {
 	updateBoardWithNewChar,
 	getTickSound,
 	CATCH_LINE_POSITION,
-} from '../game-logic.js';
+} from '../game-logic.ts';
 
 describe('game-logic (pure functions)', () => {
 	describe('createInitialGameState', () => {

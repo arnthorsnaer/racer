@@ -3,9 +3,8 @@
  * All functions return strings - no side effects
  */
 
-import { colors, frame } from './theme.js';
-import type { BoardItem, GameState } from '../core/game-logic.js';
-import type { PerformanceStats, FeedbackMessage } from '../core/score-calculator.js';
+import { colors, frame } from './theme.ts';
+import type { BoardItem, GameState, PerformanceStats, FeedbackMessage } from '../core/types.ts';
 
 export interface CenteringInfo {
 	leftPadding: number;

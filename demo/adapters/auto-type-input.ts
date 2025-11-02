@@ -4,8 +4,8 @@
  * Used for demo mode to showcase the game
  */
 
-import type { InputSource } from '../../src/core/game.js';
-import type { GameState } from '../../src/core/game-logic.js';
+import type { InputSource } from '../../src/core/game.ts';
+import type { GameState } from '../../src/core/game-logic.ts';
 
 interface AutoTypeOptions {
 	/** Milliseconds between auto-type checks */

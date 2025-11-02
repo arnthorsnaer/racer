@@ -1,4 +1,4 @@
-import { Level } from './src/core/level-progression.js';
+import { Level } from './src/core/level-progression.ts';
 
 /**
  * Word pool for the typing racer game

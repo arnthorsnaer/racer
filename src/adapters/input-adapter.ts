@@ -4,21 +4,10 @@
  */
 
 import keypress from 'keypress';
+import type { Key, KeypressHandler, InputAdapter } from './types.ts';
 
-export interface Key {
-	name: string;
-	ctrl?: boolean;
-	meta?: boolean;
-	shift?: boolean;
-}
-
-export type KeypressHandler = (ch: string, key: Key) => void;
-
-export interface InputAdapter {
-	initialize: () => void;
-	onKeypress: (handler: KeypressHandler) => void;
-	cleanup: () => void;
-}
+// Re-export types for backwards compatibility
+export type { Key, KeypressHandler, InputAdapter };
 
 /**
  * Create a real input adapter using keypress library

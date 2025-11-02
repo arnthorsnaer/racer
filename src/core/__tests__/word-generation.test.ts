@@ -9,7 +9,7 @@ import {
 	mix,
 	generateBagOfChars,
 	shuffleArray,
-} from '../word-generation.js';
+} from '../word-generation.ts';
 
 describe('word-generation', () => {
 	describe('split', () => {
