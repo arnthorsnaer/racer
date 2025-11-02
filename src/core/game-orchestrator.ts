@@ -1,7 +1,7 @@
 /**
  * Game Orchestrator - Core game loop with dependency injection
  *
- * This module provides the central orchestrateGame() function that contains
+ * This module provides the central startGame() function that contains
  * all shared game logic. Different game modes (main game, demo, etc.) inject
  * their specific adapters to customize behavior.
  */
@@ -116,7 +116,7 @@ export interface GameController {
 }
 
 /**
- * Main game orchestrator function
+ * Main game function
  *
  * Contains all shared game logic and coordinates between different adapters.
  * This function eliminates duplication between main game and demo modes.
@@ -124,7 +124,7 @@ export interface GameController {
  * @param options - Game configuration and adapter instances
  * @returns Controller for managing game lifecycle
  */
-export function orchestrateGame(options: GameOptions): GameController {
+export function startGame(options: GameOptions): GameController {
 	// 1. Extract options with defaults
 	const {
 		inputSource,

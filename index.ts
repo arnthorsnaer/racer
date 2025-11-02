@@ -4,7 +4,7 @@
  * Orchestrates side effects and wires together pure core logic
  */
 
-import { orchestrateGame } from './src/core/game-orchestrator.js';
+import { startGame } from './src/core/game-orchestrator.js';
 import { createKeyboardInput } from './src/adapters/keyboard-input.js';
 import { createTerminalRenderer } from './src/adapters/terminal-renderer.js';
 import { createRealSound } from './src/adapters/real-sound.js';
@@ -15,7 +15,7 @@ const renderer = createTerminalRenderer();
 const soundPlayer = createRealSound();
 
 // Start game
-const game = orchestrateGame({
+const game = startGame({
 	inputSource,
 	renderer,
 	soundPlayer,
