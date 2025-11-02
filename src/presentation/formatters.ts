@@ -140,8 +140,8 @@ export const buildGameScreen = (
 
 	// Compact footer with controls and tip
 	lines.push('');
-	lines.push(`${colors.deepPurple}${'═'.repeat(48)}${colors.reset}`);
-	lines.push(`${colors.arcadeGreen}[F1: Hljóð af/á] [Ctrl+C: Hætta]${colors.reset}  ${colors.sunsetOrange}💡 Ýttu á rétta stafi við ▶${colors.reset}`);
+	lines.push(`${colors.deepPurple}${'─'.repeat(46)}${colors.reset}`);
+	lines.push(`${colors.arcadeGreen}F1: Hljóð  ^C: Hætta${colors.reset}  ${colors.sunsetOrange}• Ýttu á ▶${colors.reset}`);
 
 	return lines;
 };
