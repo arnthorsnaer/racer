@@ -51,39 +51,3 @@ export interface SoundPlayer {
 	 */
 	play(soundName: string): void;
 }
-
-/**
- * Configuration options for the game
- */
-export interface GameOptions {
-	// Required dependencies
-	inputSource: InputSource;
-	renderer: Renderer;
-	soundPlayer: SoundPlayer;
-
-	// Optional configuration
-	tickInterval?: number;           // Default: 600ms
-	duration?: number;                // Default: undefined (infinite)
-	adaptiveDifficulty?: boolean;     // Default: true
-	showCompletionScreens?: boolean;  // Default: true
-	showProgressionScreens?: boolean; // Default: true
-}
-
-/**
- * Controller for managing game lifecycle
- */
-export interface GameController {
-	/**
-	 * Stop the game and cleanup resources
-	 */
-	stop(): void;
-
-	/**
-	 * Get current game state (for testing/debugging)
-	 */
-	getState(): GameState;
-}
-
-// Re-export GameState from core for use in GameController
-import type { GameState } from './core/types.ts';
-export type { GameState };

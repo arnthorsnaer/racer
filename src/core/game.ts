@@ -7,7 +7,7 @@
  */
 
 import type { GameState, DifficultyState, WordsByLength } from './types.ts';
-import type { InputSource, Renderer, SoundPlayer, GameOptions, GameController } from '../types.ts';
+import type { InputSource, Renderer, SoundPlayer } from '../types.ts';
 import {
 	createInitialGameState,
 	updateBoardWithNewChar,
@@ -35,8 +35,37 @@ import words from '../../words.ts';
 import { colors } from '../presentation/theme.ts';
 import { GAME_CONFIG } from '../config/game.ts';
 
-// Re-export types for backwards compatibility
-export type { InputSource, Renderer, SoundPlayer, GameOptions, GameController };
+/**
+ * Configuration options for the game
+ */
+interface GameOptions {
+	// Required dependencies
+	inputSource: InputSource;
+	renderer: Renderer;
+	soundPlayer: SoundPlayer;
+
+	// Optional configuration
+	tickInterval?: number;           // Default: 600ms
+	duration?: number;                // Default: undefined (infinite)
+	adaptiveDifficulty?: boolean;     // Default: true
+	showCompletionScreens?: boolean;  // Default: true
+	showProgressionScreens?: boolean; // Default: true
+}
+
+/**
+ * Controller for managing game lifecycle
+ */
+interface GameController {
+	/**
+	 * Stop the game and cleanup resources
+	 */
+	stop(): void;
+
+	/**
+	 * Get current game state (for testing/debugging)
+	 */
+	getState(): GameState;
+}
 
 /**
  * Main game function

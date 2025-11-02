@@ -3,7 +3,7 @@
  * Simple console-based renderer for demo mode
  */
 
-import type { Renderer } from '../../src/core/game.ts';
+import type { Renderer } from '../../src/types.ts';
 
 interface ConsoleRendererOptions {
 	width?: number;
