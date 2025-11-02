@@ -237,12 +237,9 @@ export function createAutoTypeInput(options: AutoTypeOptions): InputSource {
 }
 ```
 
-**Note:** The auto-type adapter needs access to game state to check the catch line. This can be handled by:
-- Option A: Pass state accessor callback (shown above)
-- Option B: Have orchestrator pass state to onInput callback signature
-- Option C: Use event-based approach
+**Note:** The auto-type adapter needs access to game state to check the catch line.
 
-Choose the cleanest approach during implementation.
+**We use the State Accessor pattern (shown above):** The adapter exposes a `setStateAccessor()` method that the orchestrator calls to provide access to current game state. This keeps the orchestrator generic while allowing the auto-type adapter to encapsulate its own logic.
 
 #### 2.3 Create `src/adapters/terminal-renderer.ts`
 ```typescript
@@ -579,6 +576,14 @@ export function orchestrateGame(options: GameOptions): GameController {
   // 7. Setup input handling
   inputSource.onInput(handleInput);
 
+  // 7a. If auto-type adapter, provide state accessor
+  if ('setStateAccessor' in inputSource) {
+    (inputSource as any).setStateAccessor(() => ({
+      gameState,
+      currentTarget
+    }));
+  }
+
   // 8. Optional: auto-stop after duration (for demo mode)
   if (duration) {
     setTimeout(() => {
@@ -688,62 +693,41 @@ const demo = orchestrateGame({
 
 ---
 
-### Phase 5: Handle Auto-Type State Access Challenge (30 min)
+### Phase 5: Handle Auto-Type State Access (30 min)
 
-The auto-type adapter needs access to game state to determine when to type. There are several approaches:
+The auto-type adapter needs access to game state to determine when to type.
 
-#### Option A: Extended Callback Signature (Recommended)
-Modify the InputSource interface to pass game state:
+**We use the State Accessor Method** because it maintains clean separation of concerns:
+- Orchestrator stays generic (no demo-specific logic)
+- Auto-type adapter encapsulates all automation logic
+- Easy to test adapters in isolation
+- Easy to add new input modes (replay, tutorial, etc.)
 
-```typescript
-export interface InputSource {
-  onInput(callback: (ch: string, gameState?: GameState, target?: string) => void): void;
-  cleanup(): void;
-}
-```
+#### Implementation
 
-Then in orchestrator:
-```typescript
-inputSource.onInput((ch, state, target) => {
-  // Auto-type adapter provides its own ch
-  // Keyboard adapter ignores state/target params
-  handleInput(ch);
-});
-```
-
-#### Option B: State Accessor Method
-Add a method to auto-type adapter:
+The auto-type adapter already has the `setStateAccessor()` method (see Phase 2.2). The orchestrator calls it:
 
 ```typescript
-// In orchestrator, after creating input source
+// In orchestrator Phase 3, after inputSource.onInput():
 if ('setStateAccessor' in inputSource) {
-  inputSource.setStateAccessor(() => ({
+  (inputSource as any).setStateAccessor(() => ({
     gameState,
     currentTarget
   }));
 }
 ```
 
-#### Option C: Move Auto-Type Logic to Orchestrator
-Keep auto-type checking inside orchestrator as a separate interval:
+**Why this pattern?**
+- ✓ Orchestrator doesn't know about demo vs keyboard vs replay
+- ✓ Each adapter handles its own complexity
+- ✓ Testable: can mock state accessor in tests
+- ✓ Type-safe at runtime (uses duck typing check)
 
-```typescript
-if (isAutoPlayMode) {
-  setInterval(() => {
-    const nextExpectedChar = currentTarget[gameState.typedProgress.length];
-    const itemAtCatchLine = gameState.board[CATCH_LINE_POSITION];
+**Alternative approaches considered:**
+- **Extended Callback Signature**: Would change InputSource interface, making keyboard adapter more complex
+- **Move Logic to Orchestrator**: Would add demo-specific conditionals to orchestrator, breaking genericness
 
-    if (itemAtCatchLine?.generated && nextExpectedChar !== undefined) {
-      const letterAtCatch = itemAtCatchLine.generated;
-      if (letterAtCatch.toLowerCase() === nextExpectedChar.toLowerCase()) {
-        handleInput(letterAtCatch);
-      }
-    }
-  }, AUTO_TYPE_INTERVAL);
-}
-```
-
-**Choose the approach that feels cleanest during implementation.**
+The State Accessor pattern keeps the architecture clean.
 
 ---
 
@@ -924,15 +908,18 @@ All by just calling `orchestrateGame()` with different options!
 
 ---
 
-## Questions to Consider During Implementation
+## Design Decisions Made
 
-1. Should auto-type logic live in adapter or orchestrator?
-2. How to handle state access for auto-type?
+**Decided:**
+1. ✓ Auto-type logic lives in adapter (State Accessor pattern) - See Phase 5
+2. ✓ State access via `setStateAccessor()` method on adapter
+
+**Still open for implementation:**
 3. Should completion screens be configurable per-word or per-game?
 4. Should we add pause/resume functionality to GameController?
 5. Should we expose more game state through getState()?
 
-Make pragmatic decisions based on what's cleanest in practice.
+Make pragmatic decisions on open questions based on what's cleanest in practice.
 
 ---
 
