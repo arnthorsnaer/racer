@@ -3,6 +3,8 @@
  * No side effects - fully testable without mocks
  */
 
+import { alphabet } from '../presentation/theme.js';
+
 /**
  * Splits a target string into its constituents
  * If the word contains spaces, splits by spaces
@@ -29,12 +31,6 @@ export const mix = (splitWord: string[], alphabet: string[]): string[] => {
 
 	return selection.concat(spaces);
 };
-
-// Icelandic alphabet for random noise
-const ICELANDIC_ALPHABET: string[] = [
-	"a", "á", "b", "d", "ð", "e", "é", "f", "g", "h", "i", "í", "j", "k", "l", "m",
-	"n", "o", "ó", "p", "r", "s", "t", "u", "ú", "v", "x", "y", "ý", "þ", "æ", "ö"
-];
 
 /**
  * FR-001 & FR-002: Generate a smart bag of characters based on current progress
@@ -79,7 +75,7 @@ export const generateBagOfChars = (typedProgress: string, fullTarget: string): s
 	// Add random letters from the alphabet for variance (about 20% of current selection size)
 	const randomCount = Math.floor(selection.length * 0.2);
 	for (let i = 0; i < randomCount; i++) {
-		const randomLetter = ICELANDIC_ALPHABET[Math.floor(Math.random() * ICELANDIC_ALPHABET.length)];
+		const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
 		selection.push(randomLetter);
 	}
 

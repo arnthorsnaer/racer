@@ -36,7 +36,7 @@ import {
 const FRAME_WIDTH = 50;
 const GAME_TICK_INTERVAL = 500; // ms - slightly faster for demo
 const DEMO_DURATION = 18000; // 18 seconds total demo
-const AUTO_TYPE_INTERVAL = 800; // ms - auto-type every 800ms
+const AUTO_TYPE_INTERVAL = 250; // ms - auto-type frequently to catch letters
 
 // Initialize word pool
 const singleWordLevels = filterSingleWords(words);
