@@ -46,7 +46,7 @@ jobs:
           set -e
 
           # Run the demo and ensure it stays alive long enough
-          bun run demo.ts
+          bun run demo/index.ts
 
           # Ensure we have a clean exit
           exit 0
