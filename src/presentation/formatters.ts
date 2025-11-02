@@ -160,7 +160,7 @@ export const buildWelcomeScreen = (
 
 	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 	lines.push('');
-	lines.push(`${colors.bright}${colors.electricBlue}Borð ${currentLevel} (${targetWord.length}-stafa orð)${colors.reset}`);
+	lines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevel} (${targetWord.length}-stafa orð)${colors.reset}`);
 	lines.push(`${colors.bright}Markmiðsorð: ${colors.sunsetOrange}${targetWord}${colors.reset}`);
 	lines.push(`${colors.limeGreen}Orð kláruð: ${completedWords}${colors.reset}  ${colors.cosmicPurple}Stig: ${score.toFixed(1)}${colors.reset}`);
 	lines.push('');
@@ -203,7 +203,7 @@ export const buildCompletionScreen = (
 	lines.push(`${colors.bright}${colors.neonPink}▓▒░ ÍSLENSKUR STAFA-KAPPAKSTUR ░▒▓${colors.reset}`);
 	lines.push('');
 	lines.push(`${colors.bright}${colors.neonPink}★ TIL HAMINGJU! Þú kláraðir orðið: ${colors.sunsetOrange}${fullTarget}${colors.reset}`);
-	lines.push(`${colors.bright}${colors.electricBlue}Borð ${currentLevel} lokið!${colors.reset}`);
+	lines.push(`${colors.bright}${colors.electricBlue}Stig ${currentLevel} lokið!${colors.reset}`);
 	lines.push(`${colors.limeGreen}Orð kláruð: ${completedWords}${colors.reset}  ${colors.cosmicPurple}Stig: ${score.toFixed(1)}${colors.reset}`);
 	lines.push('');
 
