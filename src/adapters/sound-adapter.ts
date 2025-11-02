@@ -6,10 +6,15 @@
 import playSound from 'play-sound';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import type { SoundAdapter } from './types.ts';
 
-// Re-export types for backwards compatibility
-export type { SoundAdapter };
+/**
+ * Sound adapter interface for audio playback
+ */
+interface SoundAdapter {
+	play: (soundName: string) => void;
+	toggleMute: () => boolean;
+	isMuted: () => boolean;
+}
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);

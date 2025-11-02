@@ -4,10 +4,16 @@
  */
 
 import keypress from 'keypress';
-import type { Key, KeypressHandler, InputAdapter } from './types.ts';
+import type { Key, KeypressHandler } from './types.ts';
 
-// Re-export types for backwards compatibility
-export type { Key, KeypressHandler, InputAdapter };
+/**
+ * Input adapter interface for keyboard input
+ */
+interface InputAdapter {
+	initialize: () => void;
+	onKeypress: (handler: KeypressHandler) => void;
+	cleanup: () => void;
+}
 
 /**
  * Create a real input adapter using keypress library

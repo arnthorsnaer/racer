@@ -3,10 +3,22 @@
  * Side effects isolated here
  */
 
-import type { TerminalDimensions, TerminalAdapter } from './types.ts';
+/**
+ * Terminal dimensions
+ */
+interface TerminalDimensions {
+	width: number;
+	height: number;
+}
 
-// Re-export types for backwards compatibility
-export type { TerminalDimensions, TerminalAdapter };
+/**
+ * Terminal adapter interface for console output
+ */
+interface TerminalAdapter {
+	clear: () => void;
+	log: (message: string) => void;
+	getDimensions: () => TerminalDimensions;
+}
 
 /**
  * Create a real terminal adapter using process.stdout
