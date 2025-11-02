@@ -13,14 +13,13 @@
  * Key information from keypress events
  */
 export interface Key {
-	name: string;
-	ctrl?: boolean;
-	meta?: boolean;
-	shift?: boolean;
+  name: string;
+  ctrl?: boolean;
+  meta?: boolean;
+  shift?: boolean;
 }
 
 /**
  * Handler function for keypress events
  */
 export type KeypressHandler = (ch: string, key: Key) => void;
-

@@ -15,7 +15,7 @@ export type { WordsByLength };
  * @returns Only levels with single words
  */
 export const filterSingleWords = (levels: Level[]): Level[] => {
-	return levels.filter(level => !level.target.includes(' '));
+  return levels.filter((level) => !level.target.includes(' '));
 };
 
 /**
@@ -25,17 +25,17 @@ export const filterSingleWords = (levels: Level[]): Level[] => {
  * @returns Map of length -> array of words
  */
 export const organizeWordsByLength = (levels: Level[]): WordsByLength => {
-	const wordsByLength: WordsByLength = {};
+  const wordsByLength: WordsByLength = {};
 
-	levels.forEach(level => {
-		const length = level.target.length;
-		if (!wordsByLength[length]) {
-			wordsByLength[length] = [];
-		}
-		wordsByLength[length].push(level.target);
-	});
+  levels.forEach((level) => {
+    const length = level.target.length;
+    if (!wordsByLength[length]) {
+      wordsByLength[length] = [];
+    }
+    wordsByLength[length].push(level.target);
+  });
 
-	return wordsByLength;
+  return wordsByLength;
 };
 
 /**
@@ -45,9 +45,9 @@ export const organizeWordsByLength = (levels: Level[]): WordsByLength => {
  * @returns Sorted array of available lengths
  */
 export const getAvailableLengths = (wordsByLength: WordsByLength): number[] => {
-	return Object.keys(wordsByLength)
-		.map(Number)
-		.sort((a, b) => a - b);
+  return Object.keys(wordsByLength)
+    .map(Number)
+    .sort((a, b) => a - b);
 };
 
 /**
@@ -57,9 +57,9 @@ export const getAvailableLengths = (wordsByLength: WordsByLength): number[] => {
  * @returns Maximum word length
  */
 export const getMaxWordLength = (wordsByLength: WordsByLength): number => {
-	const lengths = getAvailableLengths(wordsByLength);
-	const maxLength = lengths[lengths.length - 1];
-	return maxLength !== undefined ? maxLength : 3;
+  const lengths = getAvailableLengths(wordsByLength);
+  const maxLength = lengths[lengths.length - 1];
+  return maxLength !== undefined ? maxLength : 3;
 };
 
 /**
@@ -71,30 +71,30 @@ export const getMaxWordLength = (wordsByLength: WordsByLength): number => {
  * @returns Random word of target length, or null if none available
  */
 export const selectWordAtLength = (
-	wordsByLength: WordsByLength,
-	targetLength: number,
-	usedWords: Set<string> = new Set()
+  wordsByLength: WordsByLength,
+  targetLength: number,
+  usedWords: Set<string> = new Set()
 ): string | null => {
-	const wordsAtLength = wordsByLength[targetLength];
+  const wordsAtLength = wordsByLength[targetLength];
 
-	if (!wordsAtLength || wordsAtLength.length === 0) {
-		return null;
-	}
+  if (!wordsAtLength || wordsAtLength.length === 0) {
+    return null;
+  }
 
-	// Filter out used words
-	const availableWords = wordsAtLength.filter(word => !usedWords.has(word));
+  // Filter out used words
+  const availableWords = wordsAtLength.filter((word) => !usedWords.has(word));
 
-	// If all words at this length have been used, reset and use any
-	if (availableWords.length === 0) {
-		const randomIndex = Math.floor(Math.random() * wordsAtLength.length);
-		const word = wordsAtLength[randomIndex];
-		return word !== undefined ? word : null;
-	}
+  // If all words at this length have been used, reset and use any
+  if (availableWords.length === 0) {
+    const randomIndex = Math.floor(Math.random() * wordsAtLength.length);
+    const word = wordsAtLength[randomIndex];
+    return word !== undefined ? word : null;
+  }
 
-	// Select random from available unused words
-	const randomIndex = Math.floor(Math.random() * availableWords.length);
-	const word = availableWords[randomIndex];
-	return word !== undefined ? word : null;
+  // Select random from available unused words
+  const randomIndex = Math.floor(Math.random() * availableWords.length);
+  const word = availableWords[randomIndex];
+  return word !== undefined ? word : null;
 };
 
 /**
@@ -104,22 +104,19 @@ export const selectWordAtLength = (
  * @param targetLength - Desired word length
  * @returns Closest available length
  */
-export const findClosestLength = (
-	wordsByLength: WordsByLength,
-	targetLength: number
-): number => {
-	const availableLengths = getAvailableLengths(wordsByLength);
+export const findClosestLength = (wordsByLength: WordsByLength, targetLength: number): number => {
+  const availableLengths = getAvailableLengths(wordsByLength);
 
-	if (availableLengths.length === 0) {
-		return targetLength; // Fallback
-	}
+  if (availableLengths.length === 0) {
+    return targetLength; // Fallback
+  }
 
-	// Find closest length
-	return availableLengths.reduce((closest, current) => {
-		const currentDiff = Math.abs(current - targetLength);
-		const closestDiff = Math.abs(closest - targetLength);
-		return currentDiff < closestDiff ? current : closest;
-	});
+  // Find closest length
+  return availableLengths.reduce((closest, current) => {
+    const currentDiff = Math.abs(current - targetLength);
+    const closestDiff = Math.abs(closest - targetLength);
+    return currentDiff < closestDiff ? current : closest;
+  });
 };
 
 /**
@@ -130,12 +127,12 @@ export const findClosestLength = (
  * @returns Map of length -> count
  */
 export const getWordCounts = (wordsByLength: WordsByLength): { [length: number]: number } => {
-	const counts: { [length: number]: number } = {};
-	Object.keys(wordsByLength).forEach(length => {
-		const words = wordsByLength[Number(length)];
-		if (words) {
-			counts[Number(length)] = words.length;
-		}
-	});
-	return counts;
+  const counts: { [length: number]: number } = {};
+  Object.keys(wordsByLength).forEach((length) => {
+    const words = wordsByLength[Number(length)];
+    if (words) {
+      counts[Number(length)] = words.length;
+    }
+  });
+  return counts;
 };

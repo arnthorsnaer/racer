@@ -16,7 +16,7 @@ export const STARTING_WORD_LENGTH = 3;
  * @returns The level number (1-indexed)
  */
 export const getLevelFromWordLength = (wordLength: number): number => {
-	return wordLength - STARTING_WORD_LENGTH + 1;
+  return wordLength - STARTING_WORD_LENGTH + 1;
 };
 
 /**
@@ -26,7 +26,7 @@ export const getLevelFromWordLength = (wordLength: number): number => {
  * @returns The word length for this level
  */
 export const getWordLengthFromLevel = (level: number): number => {
-	return level + STARTING_WORD_LENGTH - 1;
+  return level + STARTING_WORD_LENGTH - 1;
 };
 
 /**
@@ -44,11 +44,11 @@ export const getWordLengthFromLevel = (level: number): number => {
  * @returns Score between 0 and 100
  */
 export const calculateScore = (completedLevels: number, completedWords: number): number => {
-	if (completedWords === 0) return 0;
-	if (completedLevels < 0) return 0;
+  if (completedWords === 0) return 0;
+  if (completedLevels < 0) return 0;
 
-	const score = (completedLevels / completedWords) * 100;
+  const score = (completedLevels / completedWords) * 100;
 
-	// Clamp between 0 and 100
-	return Math.max(0, Math.min(100, score));
+  // Clamp between 0 and 100
+  return Math.max(0, Math.min(100, score));
 };
