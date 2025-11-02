@@ -31,12 +31,15 @@ import {
 	CATCH_LINE_POSITION,
 	type GameState,
 } from './src/core/game-logic.js';
+import {
+	STARTING_WORD_LENGTH,
+} from './src/core/adaptive-scoring.js';
 
 // Demo configuration
 const FRAME_WIDTH = 50;
 const GAME_TICK_INTERVAL = 500; // ms - slightly faster for demo
 const DEMO_DURATION = 18000; // 18 seconds total demo
-const AUTO_TYPE_INTERVAL = 800; // ms - auto-type every 800ms
+const AUTO_TYPE_INTERVAL = 250; // ms - auto-type frequently to catch letters
 
 // Initialize word pool
 const singleWordLevels = filterSingleWords(words);
@@ -48,7 +51,7 @@ let bagOfChars: string[] = [];
 let currentTarget: string = '';
 let lastFeedback: string = '';
 let completedWords: number = 0;
-let currentWordLength: number = 7; // Start with medium difficulty word
+let currentWordLength: number = STARTING_WORD_LENGTH; // Start with same difficulty as main game
 
 /**
  * Select and initialize a new word
