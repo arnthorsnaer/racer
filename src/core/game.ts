@@ -73,7 +73,7 @@ interface GameController {
  * @param options - Game configuration and adapter instances
  * @returns Controller for managing game lifecycle
  */
-export function startGame(options: GameOptions): GameController {
+export const startGame = (options: GameOptions): GameController => {
   // 1. Extract options with defaults
   const {
     inputSource,
@@ -332,4 +332,4 @@ export function startGame(options: GameOptions): GameController {
     stop,
     getState: () => gameState,
   };
-}
+};

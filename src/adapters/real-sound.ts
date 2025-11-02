@@ -6,7 +6,7 @@
 import type { SoundPlayer } from '../types.ts';
 import { createSoundAdapter } from './sound-adapter.ts';
 
-export function createRealSound(): SoundPlayer {
+export const createRealSound = (): SoundPlayer => {
   const sound = createSoundAdapter();
 
   return {
@@ -14,4 +14,4 @@ export function createRealSound(): SoundPlayer {
       sound.play(soundName);
     },
   };
-}
+};

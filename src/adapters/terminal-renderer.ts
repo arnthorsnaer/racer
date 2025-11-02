@@ -6,7 +6,7 @@
 import type { Renderer } from '../types.ts';
 import { createTerminalAdapter } from './terminal-adapter.ts';
 
-export function createTerminalRenderer(): Renderer {
+export const createTerminalRenderer = (): Renderer => {
   const terminal = createTerminalAdapter();
 
   return {
@@ -22,4 +22,4 @@ export function createTerminalRenderer(): Renderer {
       return terminal.getDimensions();
     },
   };
-}
+};

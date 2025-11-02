@@ -25,7 +25,7 @@ export interface AutoTypeInputSource extends InputSource {
   setStateAccessor(accessor: () => { gameState: GameState; currentTarget: string }): void;
 }
 
-export function createAutoTypeInput(options: AutoTypeOptions): AutoTypeInputSource {
+export const createAutoTypeInput = (options: AutoTypeOptions): AutoTypeInputSource => {
   const { interval, catchLinePosition } = options;
   let intervalId: NodeJS.Timeout | null = null;
   let callback: ((ch: string) => void) | null = null;
@@ -67,4 +67,4 @@ export function createAutoTypeInput(options: AutoTypeOptions): AutoTypeInputSour
       gameStateAccessor = accessor;
     },
   };
-}
+};

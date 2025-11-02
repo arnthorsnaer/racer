@@ -7,7 +7,7 @@ import type { InputSource } from '../types.ts';
 import { createInputAdapter } from './input-adapter.ts';
 import type { Key } from './types.ts';
 
-export function createKeyboardInput(): InputSource {
+export const createKeyboardInput = (): InputSource => {
   const input = createInputAdapter();
 
   return {
@@ -42,4 +42,4 @@ export function createKeyboardInput(): InputSource {
       input.cleanup();
     },
   };
-}
+};
