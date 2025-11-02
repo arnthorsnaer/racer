@@ -6,6 +6,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "bun run index.ts",
+    "demo": "bun run demo/index.ts",
     "dev": "bun --watch index.ts",
     "type-check": "tsc --noEmit",
     "test": "vitest",

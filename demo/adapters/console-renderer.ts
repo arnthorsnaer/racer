@@ -3,7 +3,7 @@
  * Simple console-based renderer for demo mode
  */
 
-import type { Renderer } from '../core/game-orchestrator.js';
+import type { Renderer } from '../../src/core/game-orchestrator.js';
 
 interface ConsoleRendererOptions {
 	width?: number;

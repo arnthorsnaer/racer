@@ -4,8 +4,8 @@
  * Used for demo mode to showcase the game
  */
 
-import type { InputSource } from '../core/game-orchestrator.js';
-import type { GameState } from '../core/game-logic.js';
+import type { InputSource } from '../../src/core/game-orchestrator.js';
+import type { GameState } from '../../src/core/game-logic.js';
 
 interface AutoTypeOptions {
 	/** Milliseconds between auto-type checks */

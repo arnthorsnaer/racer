@@ -6,15 +6,15 @@
  * Perfect for GitHub Actions workflow recordings and demonstrations.
  *
  * Usage:
- *   bun run demo.ts
+ *   bun run demo/index.ts
  */
 
-import { orchestrateGame } from './src/core/game-orchestrator.js';
-import { createAutoTypeInput } from './src/adapters/auto-type-input.js';
-import { createConsoleRenderer } from './src/adapters/console-renderer.js';
-import { createNoopSound } from './src/adapters/noop-sound.js';
-import { GAME_CONFIG } from './src/config/game.js';
-import { CATCH_LINE_POSITION } from './src/core/game-logic.js';
+import { orchestrateGame } from '../src/core/game-orchestrator.js';
+import { createAutoTypeInput } from './adapters/auto-type-input.js';
+import { createConsoleRenderer } from './adapters/console-renderer.js';
+import { createNoopSound } from './adapters/noop-sound.js';
+import { GAME_CONFIG } from '../src/config/game.js';
+import { CATCH_LINE_POSITION } from '../src/core/game-logic.js';
 
 /**
  * Run the automated demo
