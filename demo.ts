@@ -31,6 +31,9 @@ import {
 	CATCH_LINE_POSITION,
 	type GameState,
 } from './src/core/game-logic.js';
+import {
+	STARTING_WORD_LENGTH,
+} from './src/core/adaptive-scoring.js';
 
 // Demo configuration
 const FRAME_WIDTH = 50;
@@ -48,7 +51,7 @@ let bagOfChars: string[] = [];
 let currentTarget: string = '';
 let lastFeedback: string = '';
 let completedWords: number = 0;
-let currentWordLength: number = 7; // Start with medium difficulty word
+let currentWordLength: number = STARTING_WORD_LENGTH; // Start with same difficulty as main game
 
 /**
  * Select and initialize a new word
