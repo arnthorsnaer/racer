@@ -75,19 +75,19 @@ jobs:
         run: |
           # Convert asciinema recording to animated GIF
           echo "Converting to animated GIF..."
-          agg demo.cast demo.gif --cols 80 --rows 24
+          agg demo.cast demo/demo.gif --cols 80 --rows 24
 
           echo "Conversion complete"
-          ls -lh demo.gif
+          ls -lh demo/demo.gif
         timeout-minutes: 1
 
       - name: Verify demo.gif was created
         run: |
-          if [ -f demo.gif ]; then
+          if [ -f demo/demo.gif ]; then
             echo "✅ Demo recording created successfully"
-            ls -lh demo.gif
+            ls -lh demo/demo.gif
           else
-            echo "❌ Failed to create demo.gif"
+            echo "❌ Failed to create demo/demo.gif"
             exit 1
           fi
 
@@ -99,7 +99,7 @@ jobs:
           # Verify we're on the right branch
           git branch --show-current
 
-          git add demo.gif
+          git add demo/demo.gif
           git commit -m "Update demo.gif recording [skip ci]" || echo "No changes to commit"
           git push origin HEAD:${{ github.head_ref }}
 
@@ -107,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: demo-recording
-          path: demo.gif
+          path: demo/demo.gif
           retention-days: 30
 
       - name: Comment on PR with inline demo
@@ -120,7 +120,7 @@ jobs:
             const branch = context.payload.pull_request.head.ref;
 
             // Construct the raw URL for the GIF file
-            const gifUrl = `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/${branch}/demo.gif`;
+            const gifUrl = `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/${branch}/demo/demo.gif`;
 
             const comment = `## 🎬 Demo Recording
 
@@ -135,7 +135,7 @@ jobs:
             The demo is automatically generated on every PR update.
 
             **🔗 Quick Links:**
-            - [View demo.gif file](https://github.com/${repo.owner}/${repo.repo}/blob/${branch}/demo.gif)
+            - [View demo.gif file](https://github.com/${repo.owner}/${repo.repo}/blob/${branch}/demo/demo.gif)
             - [Download GIF](${gifUrl})
             - [View this commit](https://github.com/${repo.owner}/${repo.repo}/commit/${sha})
 
