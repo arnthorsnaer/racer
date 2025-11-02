@@ -3,7 +3,7 @@
  * Silent sound player for demo mode
  */
 
-import type { SoundPlayer } from '../../src/core/game-orchestrator.js';
+import type { SoundPlayer } from '../../src/core/game.js';
 
 export function createNoopSound(): SoundPlayer {
 	return {

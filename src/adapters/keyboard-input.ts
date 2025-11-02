@@ -1,9 +1,9 @@
 /**
  * Keyboard Input Adapter
- * Wraps the existing input-adapter for use with the game orchestrator
+ * Wraps the existing input-adapter for use with the game
  */
 
-import type { InputSource } from '../core/game-orchestrator.js';
+import type { InputSource } from '../core/game.js';
 import { createInputAdapter, type Key } from './input-adapter.js';
 
 export function createKeyboardInput(): InputSource {

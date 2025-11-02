@@ -1,5 +1,5 @@
 /**
- * Game Orchestrator - Core game loop with dependency injection
+ * Core Game - Main game loop with dependency injection
  *
  * This module provides the central startGame() function that contains
  * all shared game logic. Different game modes (main game, demo, etc.) inject
@@ -84,7 +84,7 @@ export interface SoundPlayer {
 }
 
 /**
- * Configuration options for game orchestration
+ * Configuration options for the game
  */
 export interface GameOptions {
 	// Required dependencies

@@ -9,7 +9,7 @@
  *   bun run demo/index.ts
  */
 
-import { startGame } from '../src/core/game-orchestrator.js';
+import { startGame } from '../src/core/game.js';
 import { createAutoTypeInput } from './adapters/auto-type-input.js';
 import { createConsoleRenderer } from './adapters/console-renderer.js';
 import { createNoopSound } from './adapters/noop-sound.js';
