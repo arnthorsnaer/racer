@@ -3,16 +3,10 @@
  * No side effects - fully testable without mocks
  */
 
-export interface PerformanceStats {
-	errorCount: number;
-	missedLetters: number;
-	isPerfect: boolean;
-}
+import type { PerformanceStats, FeedbackMessage } from './types.ts';
 
-export interface FeedbackMessage {
-	message: string;
-	type: 'perfect' | 'good-accuracy' | 'good-efficiency' | 'keep-practicing';
-}
+// Re-export types for backwards compatibility
+export type { PerformanceStats, FeedbackMessage };
 
 /**
  * Check if the performance was perfect

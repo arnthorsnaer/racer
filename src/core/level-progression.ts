@@ -3,11 +3,11 @@
  * No side effects - fully testable without mocks
  */
 
-import { shuffleArray } from './word-generation.js';
+import { shuffleArray } from './word-generation.ts';
+import type { Level } from './types.ts';
 
-export interface Level {
-	target: string;
-}
+// Re-export types for backwards compatibility
+export type { Level };
 
 /**
  * FR-003: Create a randomized order of level indices
@@ -26,7 +26,14 @@ export const getActualLevel = (
 	levels: Level[]
 ): Level => {
 	const actualIndex = shuffledIndices[currentLevelIndex];
-	return levels[actualIndex];
+	if (actualIndex === undefined) {
+		throw new Error('Invalid level index');
+	}
+	const level = levels[actualIndex];
+	if (!level) {
+		throw new Error('Level not found');
+	}
+	return level;
 };
 
 /**

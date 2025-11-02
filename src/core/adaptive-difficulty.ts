@@ -3,22 +3,10 @@
  * No side effects - fully testable without mocks
  */
 
-import { PerformanceStats } from './score-calculator.js';
+import type { DifficultyState, ProgressionResult, PerformanceStats } from './types.ts';
 
-export interface DifficultyState {
-	currentWordLength: number; // Current target word length
-	minWordLength: number;     // Floor (can't go below this)
-	maxWordLength: number;     // Ceiling (can't go above this)
-	completedWords: number;    // Total words completed
-	usedWords: Set<string>;    // Words already used (to avoid repetition)
-	consecutivePerfect: number; // Consecutive perfect completions at current level
-}
-
-export interface ProgressionResult {
-	newWordLength: number;
-	progressionType: 'upgrade' | 'stay' | 'downgrade';
-	message: string;
-}
+// Re-export types for backwards compatibility
+export type { DifficultyState, ProgressionResult };
 
 /**
  * Determine if performance qualifies for upgrade

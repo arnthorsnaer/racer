@@ -3,11 +3,10 @@
  * Organizes words by length and handles selection with anti-repetition
  */
 
-import { Level } from './level-progression.js';
+import type { Level, WordsByLength } from './types.ts';
 
-export interface WordsByLength {
-	[length: number]: string[];
-}
+// Re-export types for backwards compatibility
+export type { WordsByLength };
 
 /**
  * Filter levels to only include single words (no spaces)
@@ -59,7 +58,8 @@ export const getAvailableLengths = (wordsByLength: WordsByLength): number[] => {
  */
 export const getMaxWordLength = (wordsByLength: WordsByLength): number => {
 	const lengths = getAvailableLengths(wordsByLength);
-	return lengths.length > 0 ? lengths[lengths.length - 1] : 3;
+	const maxLength = lengths[lengths.length - 1];
+	return maxLength !== undefined ? maxLength : 3;
 };
 
 /**
@@ -87,12 +87,14 @@ export const selectWordAtLength = (
 	// If all words at this length have been used, reset and use any
 	if (availableWords.length === 0) {
 		const randomIndex = Math.floor(Math.random() * wordsAtLength.length);
-		return wordsAtLength[randomIndex];
+		const word = wordsAtLength[randomIndex];
+		return word !== undefined ? word : null;
 	}
 
 	// Select random from available unused words
 	const randomIndex = Math.floor(Math.random() * availableWords.length);
-	return availableWords[randomIndex];
+	const word = availableWords[randomIndex];
+	return word !== undefined ? word : null;
 };
 
 /**
@@ -130,7 +132,10 @@ export const findClosestLength = (
 export const getWordCounts = (wordsByLength: WordsByLength): { [length: number]: number } => {
 	const counts: { [length: number]: number } = {};
 	Object.keys(wordsByLength).forEach(length => {
-		counts[Number(length)] = wordsByLength[Number(length)].length;
+		const words = wordsByLength[Number(length)];
+		if (words) {
+			counts[Number(length)] = words.length;
+		}
 	});
 	return counts;
 };

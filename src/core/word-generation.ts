@@ -3,7 +3,7 @@
  * No side effects - fully testable without mocks
  */
 
-import { alphabet } from '../presentation/theme.js';
+import { alphabet } from '../presentation/theme.ts';
 
 /**
  * Splits a target string into its constituents
@@ -49,7 +49,11 @@ export const generateBagOfChars = (typedProgress: string, fullTarget: string): s
 	}
 
 	// Get the next required letter (the one we need RIGHT NOW)
-	const nextLetter = remaining[0].toLowerCase();
+	const nextChar = remaining[0];
+	if (!nextChar) {
+		return [' ']; // Safety check
+	}
+	const nextLetter = nextChar.toLowerCase();
 
 	// Get all unique letters still needed (including duplicates in remaining)
 	const remainingLetters = remaining.toLowerCase().split('');
@@ -76,7 +80,9 @@ export const generateBagOfChars = (typedProgress: string, fullTarget: string): s
 	const randomCount = Math.floor(selection.length * 0.2);
 	for (let i = 0; i < randomCount; i++) {
 		const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
-		selection.push(randomLetter);
+		if (randomLetter) {
+			selection.push(randomLetter);
+		}
 	}
 
 	// Add some spaces to create gaps
@@ -94,7 +100,12 @@ export const shuffleArray = <T>(array: T[]): T[] => {
 	const shuffled = [...array];
 	for (let i = shuffled.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
-		[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+		const temp = shuffled[i];
+		const swapValue = shuffled[j];
+		if (temp !== undefined && swapValue !== undefined) {
+			shuffled[i] = swapValue;
+			shuffled[j] = temp;
+		}
 	}
 	return shuffled;
 };

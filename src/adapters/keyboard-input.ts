@@ -3,8 +3,9 @@
  * Wraps the existing input-adapter for use with the game
  */
 
-import type { InputSource } from '../core/game.js';
-import { createInputAdapter, type Key } from './input-adapter.js';
+import type { InputSource } from '../types.ts';
+import { createInputAdapter } from './input-adapter.ts';
+import type { Key } from './types.ts';
 
 export function createKeyboardInput(): InputSource {
 	const input = createInputAdapter();

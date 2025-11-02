@@ -9,7 +9,7 @@ import {
 	calculateStats,
 	generateFeedback,
 	type PerformanceStats,
-} from '../score-calculator.js';
+} from '../score-calculator.ts';
 
 describe('score-calculator', () => {
 	describe('isPerfect', () => {

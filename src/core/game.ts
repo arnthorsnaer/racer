@@ -6,114 +6,37 @@
  * their specific adapters to customize behavior.
  */
 
-import type { GameState } from './game-logic.js';
-import type { DifficultyState } from './adaptive-difficulty.js';
-import type { WordsByLength } from './word-pool.js';
+import type { GameState, DifficultyState, WordsByLength } from './types.ts';
+import type { InputSource, Renderer, SoundPlayer, GameOptions, GameController } from '../types.ts';
 import {
 	createInitialGameState,
 	updateBoardWithNewChar,
 	processKeypress,
 	getTickSound,
 	CATCH_LINE_POSITION,
-} from './game-logic.js';
+} from './game-logic.ts';
 import {
 	createInitialDifficultyState,
 	updateDifficultyState,
-} from './adaptive-difficulty.js';
+} from './adaptive-difficulty.ts';
 import {
 	organizeWordsByLength,
 	filterSingleWords,
 	selectWordAtLength,
 	getMaxWordLength,
-} from './word-pool.js';
-import { generateBagOfChars } from './word-generation.js';
-import { buildGameScreen, buildCompletionScreen } from '../presentation/formatters.js';
-import { renderWithFrame } from '../presentation/formatters.js';
-import { calculateScore, getLevelFromWordLength } from './adaptive-scoring.js';
-import { calculateStats, generateFeedback } from './score-calculator.js';
-import { STARTING_WORD_LENGTH } from './adaptive-scoring.js';
-import words from '../../words.js';
-import { colors } from '../presentation/theme.js';
-import { GAME_CONFIG } from '../config/game.js';
+} from './word-pool.ts';
+import { generateBagOfChars } from './word-generation.ts';
+import { buildGameScreen, buildCompletionScreen } from '../presentation/formatters.ts';
+import { renderWithFrame } from '../presentation/formatters.ts';
+import { calculateScore, getLevelFromWordLength } from './adaptive-scoring.ts';
+import { calculateStats, generateFeedback } from './score-calculator.ts';
+import { STARTING_WORD_LENGTH } from './adaptive-scoring.ts';
+import words from '../../words.ts';
+import { colors } from '../presentation/theme.ts';
+import { GAME_CONFIG } from '../config/game.ts';
 
-/**
- * Input source abstraction - handles user input or automated input
- */
-export interface InputSource {
-	/**
-	 * Register callback for input events
-	 * For keyboard: fires on keypress
-	 * For auto-type: fires automatically when conditions are met
-	 */
-	onInput(callback: (ch: string) => void): void;
-
-	/**
-	 * Cleanup input listeners
-	 */
-	cleanup(): void;
-}
-
-/**
- * Renderer abstraction - handles display output
- */
-export interface Renderer {
-	/**
-	 * Clear the display
-	 */
-	clear(): void;
-
-	/**
-	 * Render lines to display
-	 */
-	render(lines: string[]): void;
-
-	/**
-	 * Get current terminal dimensions
-	 */
-	getDimensions(): { width: number; height: number };
-}
-
-/**
- * Sound player abstraction - handles audio output
- */
-export interface SoundPlayer {
-	/**
-	 * Play a sound by name
-	 */
-	play(soundName: string): void;
-}
-
-/**
- * Configuration options for the game
- */
-export interface GameOptions {
-	// Required dependencies
-	inputSource: InputSource;
-	renderer: Renderer;
-	soundPlayer: SoundPlayer;
-
-	// Optional configuration
-	tickInterval?: number;           // Default: 600ms
-	duration?: number;                // Default: undefined (infinite)
-	adaptiveDifficulty?: boolean;     // Default: true
-	showCompletionScreens?: boolean;  // Default: true
-	showProgressionScreens?: boolean; // Default: true
-}
-
-/**
- * Controller for managing game lifecycle
- */
-export interface GameController {
-	/**
-	 * Stop the game and cleanup resources
-	 */
-	stop(): void;
-
-	/**
-	 * Get current game state (for testing/debugging)
-	 */
-	getState(): GameState;
-}
+// Re-export types for backwards compatibility
+export type { InputSource, Renderer, SoundPlayer, GameOptions, GameController };
 
 /**
  * Main game function
@@ -152,7 +75,7 @@ export function startGame(options: GameOptions): GameController {
 	let currentTarget: string = '';
 	let lastFeedback: string = '';
 	let progressionMessage: string = '';
-	let gameInterval: NodeJS.Timeout | null = null;
+	let gameInterval: ReturnType<typeof setInterval> | null = null;
 	let isWaitingForContinue = false;
 
 	// 4. Define internal functions
@@ -217,6 +140,9 @@ export function startGame(options: GameOptions): GameController {
 
 		// Generate new character
 		const generatedChar = bagOfChars[Math.floor(Math.random() * bagOfChars.length)];
+		if (!generatedChar) {
+			return; // Safety check
+		}
 
 		// Update board with new character
 		gameState = updateBoardWithNewChar(gameState, generatedChar, currentTarget);
