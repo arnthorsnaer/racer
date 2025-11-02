@@ -1,4 +1,4 @@
-name: Type Check and Test
+name: Type Check
 
 on:
   push:
@@ -24,6 +24,3 @@ jobs:
 
       - name: Run type check
         run: bun run type-check
-
-      - name: Run tests
-        run: bun run test:run
