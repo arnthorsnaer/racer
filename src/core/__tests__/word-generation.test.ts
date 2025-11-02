@@ -97,17 +97,17 @@ describe('word-generation', () => {
       it('should prioritize the immediate next letter after progress', () => {
         const result = generateBagOfChars('te', 'test');
 
-        // Next letter is 's', should appear 5 times
+        // Next letter is 's', should appear at least 5 times (may be more due to random letters)
         const sCount = result.filter((c) => c === 's').length;
-        expect(sCount).toBe(5);
+        expect(sCount).toBeGreaterThanOrEqual(5);
       });
 
       it('should update priority as user progresses', () => {
         const result = generateBagOfChars('tes', 'test');
 
-        // Next letter is 't' (last one), should appear 5 times
+        // Next letter is 't' (last one), should appear at least 5 times (may be more due to random letters)
         const tCount = result.filter((c) => c === 't').length;
-        expect(tCount).toBe(5);
+        expect(tCount).toBeGreaterThanOrEqual(5);
       });
     });
 
@@ -124,13 +124,14 @@ describe('word-generation', () => {
       it('should include non-next remaining letters 3 times each', () => {
         const result = generateBagOfChars('', 'test');
 
-        // Next is 't' (5 times), others should be 3 times each
+        // Next is 't' (5 times), others should be 3 times each (minimum)
         // Remaining unique letters: e, s (and t but counted separately)
+        // Note: Random letters are also added (~20% of bag), so count may be higher
         const eCount = result.filter((c) => c === 'e').length;
         const sCount = result.filter((c) => c === 's').length;
 
-        expect(eCount).toBe(3);
-        expect(sCount).toBe(3);
+        expect(eCount).toBeGreaterThanOrEqual(3);
+        expect(sCount).toBeGreaterThanOrEqual(3);
       });
 
       it('should handle duplicates in target word correctly', () => {
@@ -138,13 +139,14 @@ describe('word-generation', () => {
 
         // Next is 'b' (5 times)
         // Remaining: o (twice in word), k (once)
+        // Note: Random letters are also added (~20% of bag), so counts may be higher
         const bCount = result.filter((c) => c === 'b').length;
         const oCount = result.filter((c) => c === 'o').length;
         const kCount = result.filter((c) => c === 'k').length;
 
-        expect(bCount).toBe(5); // Next letter
-        expect(oCount).toBe(3); // Remaining letter
-        expect(kCount).toBe(3); // Remaining letter
+        expect(bCount).toBeGreaterThanOrEqual(5); // Next letter
+        expect(oCount).toBeGreaterThanOrEqual(3); // Remaining letter
+        expect(kCount).toBeGreaterThanOrEqual(3); // Remaining letter
       });
 
       it('should include random letters for variance', () => {
