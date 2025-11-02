@@ -45,8 +45,8 @@ jobs:
           #!/bin/bash
           set -e
 
-          # Run the demo using the npm script
-          npm run demo
+          # Run the demo and ensure it stays alive long enough
+          bun run demo/index.ts
 
           # Ensure we have a clean exit
           exit 0
