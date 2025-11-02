@@ -16,16 +16,16 @@ const soundPlayer = createRealSound();
 
 // Start game
 const game = startGame({
-	inputSource,
-	renderer,
-	soundPlayer,
-	adaptiveDifficulty: true,
-	showCompletionScreens: true,
-	showProgressionScreens: true,
+  inputSource,
+  renderer,
+  soundPlayer,
+  adaptiveDifficulty: true,
+  showCompletionScreens: true,
+  showProgressionScreens: true,
 });
 
 // Handle Ctrl+C gracefully (already handled in keyboard adapter, but this is backup)
 process.on('SIGINT', () => {
-	game.stop();
-	process.exit(0);
+  game.stop();
+  process.exit(0);
 });

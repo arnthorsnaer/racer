@@ -10,73 +10,73 @@ import type { Key, KeypressHandler } from './types.ts';
  * Input adapter interface for keyboard input
  */
 interface InputAdapter {
-	initialize: () => void;
-	onKeypress: (handler: KeypressHandler) => void;
-	cleanup: () => void;
+  initialize: () => void;
+  onKeypress: (handler: KeypressHandler) => void;
+  cleanup: () => void;
 }
 
 /**
  * Create a real input adapter using keypress library
  */
 export const createInputAdapter = (): InputAdapter => {
-	let isInitialized = false;
+  let isInitialized = false;
 
-	return {
-		initialize: () => {
-			if (isInitialized) return;
+  return {
+    initialize: () => {
+      if (isInitialized) return;
 
-			// Make `process.stdin` begin emitting "keypress" events
-			keypress(process.stdin);
+      // Make `process.stdin` begin emitting "keypress" events
+      keypress(process.stdin);
 
-			// Set encoding to UTF-8 to properly handle accented characters
-			process.stdin.setEncoding('utf8');
+      // Set encoding to UTF-8 to properly handle accented characters
+      process.stdin.setEncoding('utf8');
 
-			if (process.stdin.isTTY) {
-				process.stdin.setRawMode(true);
-			}
-			process.stdin.resume();
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(true);
+      }
+      process.stdin.resume();
 
-			isInitialized = true;
-		},
+      isInitialized = true;
+    },
 
-		onKeypress: (handler: KeypressHandler) => {
-			process.stdin.on('keypress', handler);
-		},
+    onKeypress: (handler: KeypressHandler) => {
+      process.stdin.on('keypress', handler);
+    },
 
-		cleanup: () => {
-			process.stdin.pause();
-			if (process.stdin.isTTY) {
-				process.stdin.setRawMode(false);
-			}
-		},
-	};
+    cleanup: () => {
+      process.stdin.pause();
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(false);
+      }
+    },
+  };
 };
 
 /**
  * Create a mock input adapter for testing
  */
 export const createMockInputAdapter = (): InputAdapter & {
-	simulateKeypress: (ch: string, key: Key) => void;
+  simulateKeypress: (ch: string, key: Key) => void;
 } => {
-	let handler: KeypressHandler | null = null;
+  let handler: KeypressHandler | null = null;
 
-	return {
-		initialize: () => {
-			// Mock initialization - no-op
-		},
+  return {
+    initialize: () => {
+      // Mock initialization - no-op
+    },
 
-		onKeypress: (h: KeypressHandler) => {
-			handler = h;
-		},
+    onKeypress: (h: KeypressHandler) => {
+      handler = h;
+    },
 
-		cleanup: () => {
-			handler = null;
-		},
+    cleanup: () => {
+      handler = null;
+    },
 
-		simulateKeypress: (ch: string, key: Key) => {
-			if (handler) {
-				handler(ch, key);
-			}
-		},
-	};
+    simulateKeypress: (ch: string, key: Key) => {
+      if (handler) {
+        handler(ch, key);
+      }
+    },
+  };
 };

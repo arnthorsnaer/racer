@@ -7,11 +7,11 @@ import type { SoundPlayer } from '../types.ts';
 import { createSoundAdapter } from './sound-adapter.ts';
 
 export function createRealSound(): SoundPlayer {
-	const sound = createSoundAdapter();
+  const sound = createSoundAdapter();
 
-	return {
-		play(soundName: string): void {
-			sound.play(soundName);
-		}
-	};
+  return {
+    play(soundName: string): void {
+      sound.play(soundName);
+    },
+  };
 }

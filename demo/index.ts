@@ -20,71 +20,71 @@ import { CATCH_LINE_POSITION } from '../src/core/game-logic.ts';
  * Run the automated demo
  */
 async function runDemo() {
-	console.clear();
+  console.clear();
 
-	// Show initial title screen
-	console.log('\x1b[1;36m╔════════════════════════════════════════╗\x1b[0m');
-	console.log('\x1b[1;36m║                                        ║\x1b[0m');
-	console.log('\x1b[1;36m║         \x1b[1;33mRACER - Typing Game\x1b[1;36m         ║\x1b[0m');
-	console.log('\x1b[1;36m║                                        ║\x1b[0m');
-	console.log('\x1b[1;36m╚════════════════════════════════════════╝\x1b[0m');
-	console.log('');
-	console.log('\x1b[1;32m✨ Automated Demo Starting... ✨\x1b[0m');
-	console.log('');
+  // Show initial title screen
+  console.log('\x1b[1;36m╔════════════════════════════════════════╗\x1b[0m');
+  console.log('\x1b[1;36m║                                        ║\x1b[0m');
+  console.log('\x1b[1;36m║         \x1b[1;33mRACER - Typing Game\x1b[1;36m         ║\x1b[0m');
+  console.log('\x1b[1;36m║                                        ║\x1b[0m');
+  console.log('\x1b[1;36m╚════════════════════════════════════════╝\x1b[0m');
+  console.log('');
+  console.log('\x1b[1;32m✨ Automated Demo Starting... ✨\x1b[0m');
+  console.log('');
 
-	await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
-	// Create adapters
-	const inputSource = createAutoTypeInput({
-		interval: GAME_CONFIG.AUTO_TYPE_INTERVAL,
-		catchLinePosition: CATCH_LINE_POSITION,
-	});
-	const renderer = createConsoleRenderer({ width: 80, height: 24 });
-	const soundPlayer = createNoopSound();
+  // Create adapters
+  const inputSource = createAutoTypeInput({
+    interval: GAME_CONFIG.AUTO_TYPE_INTERVAL,
+    catchLinePosition: CATCH_LINE_POSITION,
+  });
+  const renderer = createConsoleRenderer({ width: 80, height: 24 });
+  const soundPlayer = createNoopSound();
 
-	// Start demo
-	const demo = startGame({
-		inputSource,
-		renderer,
-		soundPlayer,
-		tickInterval: GAME_CONFIG.DEMO_TICK_INTERVAL,
-		duration: GAME_CONFIG.DEMO_DURATION,
-		adaptiveDifficulty: false,
-		showCompletionScreens: false,
-		showProgressionScreens: false,
-	});
+  // Start demo
+  const demo = startGame({
+    inputSource,
+    renderer,
+    soundPlayer,
+    tickInterval: GAME_CONFIG.DEMO_TICK_INTERVAL,
+    duration: GAME_CONFIG.DEMO_DURATION,
+    adaptiveDifficulty: false,
+    showCompletionScreens: false,
+    showProgressionScreens: false,
+  });
 
-	// Wait for demo to complete
-	await new Promise(resolve => setTimeout(resolve, GAME_CONFIG.DEMO_DURATION + 500));
+  // Wait for demo to complete
+  await new Promise((resolve) => setTimeout(resolve, GAME_CONFIG.DEMO_DURATION + 500));
 
-	// Show final screen
-	console.clear();
-	console.log('\x1b[1;36m╔════════════════════════════════════════╗\x1b[0m');
-	console.log('\x1b[1;36m║                                        ║\x1b[0m');
-	console.log('\x1b[1;36m║         \x1b[1;33mRACER - Typing Game\x1b[1;36m         ║\x1b[0m');
-	console.log('\x1b[1;36m║                                        ║\x1b[0m');
-	console.log('\x1b[1;36m╚════════════════════════════════════════╝\x1b[0m');
-	console.log('');
-	console.log(`\x1b[1;32m✓ Demo Complete!\x1b[0m`);
-	console.log('');
-	console.log(`\x1b[1;33m📊 Demo Stats:\x1b[0m`);
-	const state = demo.getState();
-	console.log(`  • Errors: ${state.errorCount}`);
-	console.log(`  • Missed letters: ${state.missedLetters}`);
-	console.log('');
-	console.log('\x1b[1;33m🚀 Try it yourself:\x1b[0m');
-	console.log('  \x1b[36mnpm install && npm start\x1b[0m');
-	console.log('');
+  // Show final screen
+  console.clear();
+  console.log('\x1b[1;36m╔════════════════════════════════════════╗\x1b[0m');
+  console.log('\x1b[1;36m║                                        ║\x1b[0m');
+  console.log('\x1b[1;36m║         \x1b[1;33mRACER - Typing Game\x1b[1;36m         ║\x1b[0m');
+  console.log('\x1b[1;36m║                                        ║\x1b[0m');
+  console.log('\x1b[1;36m╚════════════════════════════════════════╝\x1b[0m');
+  console.log('');
+  console.log(`\x1b[1;32m✓ Demo Complete!\x1b[0m`);
+  console.log('');
+  console.log(`\x1b[1;33m📊 Demo Stats:\x1b[0m`);
+  const state = demo.getState();
+  console.log(`  • Errors: ${state.errorCount}`);
+  console.log(`  • Missed letters: ${state.missedLetters}`);
+  console.log('');
+  console.log('\x1b[1;33m🚀 Try it yourself:\x1b[0m');
+  console.log('  \x1b[36mnpm install && npm start\x1b[0m');
+  console.log('');
 
-	await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 // Run the demo
 runDemo()
-	.then(() => {
-		process.exit(0);
-	})
-	.catch((error) => {
-		console.error('\x1b[1;31mDemo error:\x1b[0m', error);
-		process.exit(1);
-	});
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('\x1b[1;31mDemo error:\x1b[0m', error);
+    process.exit(1);
+  });
