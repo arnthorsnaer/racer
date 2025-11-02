@@ -89,28 +89,28 @@ describe('word-generation', () => {
 
 	describe('generateBagOfChars', () => {
 		describe('FR-001: Next required letter probability', () => {
-			it('should add next required letter 10 times for high probability', () => {
+			it('should add next required letter 5 times for high probability', () => {
 				const result = generateBagOfChars('', 'test');
 
-				// Next letter is 't', should appear 10 times
+				// Next letter is 't', should appear 5 times
 				const tCount = result.filter(c => c === 't').length;
-				expect(tCount).toBe(10);
+				expect(tCount).toBeGreaterThanOrEqual(5);
 			});
 
 			it('should prioritize the immediate next letter after progress', () => {
 				const result = generateBagOfChars('te', 'test');
 
-				// Next letter is 's', should appear 10 times
+				// Next letter is 's', should appear 5 times
 				const sCount = result.filter(c => c === 's').length;
-				expect(sCount).toBe(10);
+				expect(sCount).toBe(5);
 			});
 
 			it('should update priority as user progresses', () => {
 				const result = generateBagOfChars('tes', 'test');
 
-				// Next letter is 't' (last one), should appear 10 times
+				// Next letter is 't' (last one), should appear 5 times
 				const tCount = result.filter(c => c === 't').length;
-				expect(tCount).toBe(10);
+				expect(tCount).toBe(5);
 			});
 		});
 
@@ -124,41 +124,45 @@ describe('word-generation', () => {
 				expect(eCount).toBe(0);
 			});
 
-			it('should include non-next remaining letters 2 times each', () => {
+			it('should include non-next remaining letters 3 times each', () => {
 				const result = generateBagOfChars('', 'test');
 
-				// Next is 't' (10 times), others should be 2 times each
+				// Next is 't' (5 times), others should be 3 times each
 				// Remaining unique letters: e, s (and t but counted separately)
 				const eCount = result.filter(c => c === 'e').length;
 				const sCount = result.filter(c => c === 's').length;
 
-				expect(eCount).toBe(2);
-				expect(sCount).toBe(2);
+				expect(eCount).toBe(3);
+				expect(sCount).toBe(3);
 			});
 
 			it('should handle duplicates in target word correctly', () => {
 				const result = generateBagOfChars('', 'book');
 
-				// Next is 'b' (10 times)
+				// Next is 'b' (5 times)
 				// Remaining: o (twice in word), k (once)
 				const bCount = result.filter(c => c === 'b').length;
 				const oCount = result.filter(c => c === 'o').length;
 				const kCount = result.filter(c => c === 'k').length;
 
-				expect(bCount).toBe(10); // Next letter
-				expect(oCount).toBe(2); // Remaining letter
-				expect(kCount).toBe(2); // Remaining letter
+				expect(bCount).toBe(5); // Next letter
+				expect(oCount).toBe(3); // Remaining letter
+				expect(kCount).toBe(3); // Remaining letter
 			});
 
-			it('should not include letters not in the target', () => {
+			it('should include random letters for variance', () => {
 				const result = generateBagOfChars('', 'abc');
 
-				// Should only contain 'a', 'b', 'c', and spaces
-				const nonTargetLetters = result.filter(c =>
+				// Should contain 'a', 'b', 'c', spaces, and some random letters
+				// Next is 'a' (5 times), remaining 'b' and 'c' (3 times each) = 11 letters
+				// Random count = floor(11 * 0.2) = 2 random letters
+				// So we expect some letters that are not a, b, c, or space
+				const randomLetters = result.filter(c =>
 					c !== 'a' && c !== 'b' && c !== 'c' && c !== ' '
 				);
 
-				expect(nonTargetLetters.length).toBe(0);
+				// Should have random letters (at least some)
+				expect(randomLetters.length).toBeGreaterThan(0);
 			});
 		});
 
@@ -173,7 +177,7 @@ describe('word-generation', () => {
 				const result = generateBagOfChars('', 'a');
 
 				const aCount = result.filter(c => c === 'a').length;
-				expect(aCount).toBe(10);
+				expect(aCount).toBe(5);
 			});
 
 			it('should add spaces proportional to selection size', () => {
@@ -192,7 +196,7 @@ describe('word-generation', () => {
 
 				// Should work with lowercase
 				const tCount = result.filter(c => c === 't').length;
-				expect(tCount).toBe(10);
+				expect(tCount).toBe(5);
 			});
 
 			it('should not add space letters to selection beyond spacing', () => {
