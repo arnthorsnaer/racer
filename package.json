@@ -22,8 +22,7 @@
   "dependencies": {
     "@types/play-sound": "^1.1.2",
     "keypress": "^0.2.1",
-    "play-sound": "^1.1.6",
-    "rollup": "^4.59.0"
+    "play-sound": "^1.1.6"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.2",
